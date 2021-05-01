@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DataAccess.Models;
+using AppCentroIdiomas.Models;
 
 namespace AppCentroIdiomas.Controllers
 {
@@ -25,6 +26,40 @@ namespace AppCentroIdiomas.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
+        }
+
+        // GET: api/Users
+        [HttpGet("GetAllCourses/{userId}")]
+        public async Task<ActionResult<IEnumerable<CourseDetailed>>> GetAllCourses(int userId)
+        {
+            //return await _context.Users.ToListAsync();
+
+            var query = from course in _context.Courses
+                        join courseBySemester in _context.CourseBySemesters on course.Id equals courseBySemester.CourseId
+                        join semester in _context.Semesters on courseBySemester.SemesterId equals semester.Id
+                        //join semester
+                        join courseBySemesterEnroll in _context.CourseBySemesterEnrolls on courseBySemester.Id equals courseBySemesterEnroll.CourseBySemesterId
+                        //join students
+                        join userByTypesStudent in _context.UserByTypes on courseBySemesterEnroll.UserByTypeStudentId equals userByTypesStudent.Id
+                        join user in _context.Users on userByTypesStudent.UserId equals user.Id
+                        //join teacher
+                        //join students
+                        join userByTypesTeacher in _context.UserByTypes on courseBySemesterEnroll.UserByTypeTeacherId equals userByTypesTeacher.Id
+                        join teacher in _context.Users on userByTypesTeacher.UserId equals teacher.Id
+                        //join user information
+                        join teacherInformation in _context.UserInformations on teacher.UserInformationId equals teacherInformation.Id
+
+                        where semester.IsActive && user.Id == userId
+                        select new CourseDetailed
+                        {
+                            Id = course.Id,
+                            Name = course.Name,
+                            Description = course.Description,
+                            Semester = semester.Name,
+                            TeacherName = string.Concat(teacherInformation.FirstName, " ", teacherInformation.LastName)
+                        };
+
+           return await query.ToListAsync();
         }
 
         // GET: api/Users/5
