@@ -29,11 +29,10 @@ namespace AppCentroIdiomas.Controllers
         }
 
         // GET: api/Users
-        [HttpGet("GetAllCourses/{userId}")]
+        [HttpGet("{userId}/GetAllCourses")]
         public async Task<ActionResult<IEnumerable<CourseDetailed>>> GetAllCourses(int userId)
         {
             //return await _context.Users.ToListAsync();
-
             var query = from course in _context.Courses
                         join courseBySemester in _context.CourseBySemesters on course.Id equals courseBySemester.CourseId
                         join semester in _context.Semesters on courseBySemester.SemesterId equals semester.Id
@@ -61,6 +60,69 @@ namespace AppCentroIdiomas.Controllers
 
            return await query.ToListAsync();
         }
+
+        // GET: api/Users/5
+        [HttpGet("{userId}/{courseId}/GetDetailedCourse")]
+        public async Task<ActionResult<CourseDetailed>> GetDetailedCourse(int userId, int courseId)
+        {
+            var query = from course in _context.Courses
+                        join courseBySemester in _context.CourseBySemesters on course.Id equals courseBySemester.CourseId
+                        join semester in _context.Semesters on courseBySemester.SemesterId equals semester.Id
+                        //join evaluations
+                        join courseBySemesterEvaluation in _context.CourseBySemesterEvaluations on courseBySemester.Id equals courseBySemesterEvaluation.CourseBySemesterId
+
+                        //join schedule
+                        join schedule in _context.Schedules on courseBySemester.Id equals schedule.CourseBySemesterId
+                        //join semester
+                        join courseBySemesterEnroll in _context.CourseBySemesterEnrolls on courseBySemester.Id equals courseBySemesterEnroll.CourseBySemesterId
+
+                        //join notes
+                        join note in _context.Notes on courseBySemester.Id equals note.CourseBySemesterEvaluationId
+
+                        //join students
+                        join userByTypesStudent in _context.UserByTypes on courseBySemesterEnroll.UserByTypeStudentId equals userByTypesStudent.Id
+                        join user in _context.Users on userByTypesStudent.UserId equals user.Id
+                        //join teacher
+                        //join students
+                        join userByTypesTeacher in _context.UserByTypes on courseBySemesterEnroll.UserByTypeTeacherId equals userByTypesTeacher.Id
+                        join teacher in _context.Users on userByTypesTeacher.UserId equals teacher.Id
+                        //join user information
+                        join teacherInformation in _context.UserInformations on teacher.UserInformationId equals teacherInformation.Id
+
+                        where semester.IsActive && user.Id == userId && course.Id == courseId
+                        //another note relationship
+                        //&& note.CourseBySemesterEnrollId == courseBySemesterEnroll.Id
+
+                        select new CourseDetailed
+                        {
+                            Id = course.Id,
+                            Name = course.Name,
+                            Description = course.Description,
+                            Semester = semester.Name,
+                            TeacherName = string.Concat(teacherInformation.FirstName, " ", teacherInformation.LastName),
+                            Schedules = courseBySemester.Schedules.Select(x => new ScheduleModel {
+                                Id = x.Id,
+                                Date = x.Date.ToString(),
+                                StartTime = x.StartTime.ToString(),
+                                EndTime = x.EndTime.ToString()
+                            }).ToList(),
+                            Notes = courseBySemester.CourseBySemesterEvaluations.Select(x => new NoteModel { 
+                               Id = note.Id,
+                               EvaluationName = courseBySemesterEvaluation.Name,
+                               EvaluationWeightPercentage = courseBySemesterEvaluation.WeightPercentage,
+                               Value = note.Value
+                            })
+                            //Notes = (IEnumerable<NoteModel>)courseBySemester.CourseBySemesterEvaluations
+                            //        .Select(x => x.Notes.Select(y => new NoteModel {
+                            //            Id = y.Id,
+                            //            EvaluationName = x.Name,
+                            //            EvaluationWeightPercentage = x.WeightPercentage,
+                            //            Value = y.Value
+                            //        }))
+                        };
+            return await query.FirstOrDefaultAsync();
+        }
+
 
         // GET: api/Users/5
         [HttpGet("{id}")]
