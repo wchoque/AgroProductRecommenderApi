@@ -21,9 +21,11 @@ namespace DataAccess.Models
         public virtual DbSet<CourseBySemester> CourseBySemesters { get; set; }
         public virtual DbSet<CourseBySemesterEnroll> CourseBySemesterEnrolls { get; set; }
         public virtual DbSet<CourseBySemesterEvaluation> CourseBySemesterEvaluations { get; set; }
+        public virtual DbSet<Invoice> Invoices { get; set; }
         public virtual DbSet<Note> Notes { get; set; }
         public virtual DbSet<Post> Posts { get; set; }
         public virtual DbSet<Schedule> Schedules { get; set; }
+        public virtual DbSet<Sede> Sedes { get; set; }
         public virtual DbSet<Semester> Semesters { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UserByType> UserByTypes { get; set; }
@@ -35,7 +37,7 @@ namespace DataAccess.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                //optionsBuilder.UseSqlServer("Server=.;Database=AppCentroEstudiosDB;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("Server=.;Database=AppCentroEstudiosDB;Trusted_Connection=True;");
             }
         }
 
@@ -64,7 +66,7 @@ namespace DataAccess.Models
                 entity.HasOne(d => d.Course)
                     .WithMany(p => p.CourseBySemesters)
                     .HasForeignKey(d => d.CourseId)
-                    .HasConstraintName("FK__CourseByS__Cours__3587F3E0");
+                    .HasConstraintName("FK__CourseByS__Cours__00DF2177");
 
                 entity.HasOne(d => d.Semester)
                     .WithMany(p => p.CourseBySemesters)
@@ -110,6 +112,23 @@ namespace DataAccess.Models
                     .HasForeignKey(d => d.CourseBySemesterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CourseBySemesterEvaluation_CourseBySemester");
+            });
+
+            modelBuilder.Entity<Invoice>(entity =>
+            {
+                entity.ToTable("Invoice");
+
+                entity.Property(e => e.Amount).HasColumnType("decimal(5, 2)");
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.CourseBySemesterEnroll)
+                    .WithMany(p => p.Invoices)
+                    .HasForeignKey(d => d.CourseBySemesterEnrollId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Invoice_CourseBySemesterEnroll");
             });
 
             modelBuilder.Entity<Note>(entity =>
@@ -166,6 +185,20 @@ namespace DataAccess.Models
                     .HasForeignKey(d => d.CourseBySemesterId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Schedule_CourseBySemester");
+            });
+
+            modelBuilder.Entity<Sede>(entity =>
+            {
+                entity.ToTable("Sede");
+
+                entity.Property(e => e.Latitud).HasColumnType("decimal(10, 6)");
+
+                entity.Property(e => e.Longitud).HasColumnType("decimal(10, 6)");
+
+                entity.Property(e => e.Nombre)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Semester>(entity =>

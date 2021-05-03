@@ -9,6 +9,7 @@ namespace DataAccess.Models
     {
         public CourseBySemesterEnroll()
         {
+            Invoices = new HashSet<Invoice>();
             Notes = new HashSet<Note>();
         }
 
@@ -20,6 +21,7 @@ namespace DataAccess.Models
         public virtual CourseBySemester CourseBySemester { get; set; }
         public virtual UserByType UserByTypeStudent { get; set; }
         public virtual UserByType UserByTypeTeacher { get; set; }
+        public virtual ICollection<Invoice> Invoices { get; set; }
         public virtual ICollection<Note> Notes { get; set; }
     }
 }
