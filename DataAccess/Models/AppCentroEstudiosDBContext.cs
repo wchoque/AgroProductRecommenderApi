@@ -88,7 +88,8 @@ namespace DataAccess.Models
                 entity.HasOne(d => d.Course)
                     .WithMany(p => p.CourseBySemesters)
                     .HasForeignKey(d => d.CourseId)
-                    .HasConstraintName("FK__CourseByS__Cours__43A1090D");
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CourseBySemester_Course");
 
                 entity.HasOne(d => d.Semester)
                     .WithMany(p => p.CourseBySemesters)

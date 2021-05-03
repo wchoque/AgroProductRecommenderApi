@@ -3,9 +3,10 @@
 namespace AppCentroIdiomas.Models
 {
     public class AvailableUser {
-        public int UserId { get; set; }
-        public string DisplayName { get; set; }
-        public string LastMessage { get; set; }
-        public DateTimeOffset? LastMessageAt { get; set; }
+        public int UserIdTo { get; set; }
+        public string DisplayNameTo { get; set; }
+        public string LastMessageContent { get; set; }
+        public DateTimeOffset? LastMessageSentAt { get; set; }
+        public string RoleTo { get; set; }
     }
 }

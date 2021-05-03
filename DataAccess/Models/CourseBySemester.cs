@@ -15,7 +15,7 @@ namespace DataAccess.Models
         }
 
         public int Id { get; set; }
-        public int? CourseId { get; set; }
+        public int CourseId { get; set; }
         public int SemesterId { get; set; }
 
         public virtual Course Course { get; set; }
