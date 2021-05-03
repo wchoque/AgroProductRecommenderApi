@@ -17,6 +17,7 @@ namespace DataAccess.Models
         {
         }
 
+        public virtual DbSet<ChatMessage> ChatMessages { get; set; }
         public virtual DbSet<Course> Courses { get; set; }
         public virtual DbSet<CourseBySemester> CourseBySemesters { get; set; }
         public virtual DbSet<CourseBySemesterEnroll> CourseBySemesterEnrolls { get; set; }
@@ -45,6 +46,27 @@ namespace DataAccess.Models
         {
             modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
 
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.ToTable("ChatMessage");
+
+                entity.Property(e => e.MessageContent)
+                    .IsRequired()
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.UserIdFromNavigation)
+                    .WithMany(p => p.ChatMessageUserIdFromNavigations)
+                    .HasForeignKey(d => d.UserIdFrom)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ChatMessage_UserIdFrom");
+
+                entity.HasOne(d => d.UserIdToNavigation)
+                    .WithMany(p => p.ChatMessageUserIdToNavigations)
+                    .HasForeignKey(d => d.UserIdTo)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ChatMessage_UserIdTo");
+            });
+
             modelBuilder.Entity<Course>(entity =>
             {
                 entity.ToTable("Course");
@@ -66,7 +88,7 @@ namespace DataAccess.Models
                 entity.HasOne(d => d.Course)
                     .WithMany(p => p.CourseBySemesters)
                     .HasForeignKey(d => d.CourseId)
-                    .HasConstraintName("FK__CourseByS__Cours__00DF2177");
+                    .HasConstraintName("FK__CourseByS__Cours__43A1090D");
 
                 entity.HasOne(d => d.Semester)
                     .WithMany(p => p.CourseBySemesters)

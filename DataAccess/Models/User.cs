@@ -9,6 +9,8 @@ namespace DataAccess.Models
     {
         public User()
         {
+            ChatMessageUserIdFromNavigations = new HashSet<ChatMessage>();
+            ChatMessageUserIdToNavigations = new HashSet<ChatMessage>();
             UserByTypes = new HashSet<UserByType>();
         }
 
@@ -20,6 +22,8 @@ namespace DataAccess.Models
         public bool IsActive { get; set; }
 
         public virtual UserInformation UserInformation { get; set; }
+        public virtual ICollection<ChatMessage> ChatMessageUserIdFromNavigations { get; set; }
+        public virtual ICollection<ChatMessage> ChatMessageUserIdToNavigations { get; set; }
         public virtual ICollection<UserByType> UserByTypes { get; set; }
     }
 }
