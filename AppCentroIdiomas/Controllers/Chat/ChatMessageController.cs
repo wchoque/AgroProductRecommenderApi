@@ -69,7 +69,7 @@ namespace AppCentroIdiomas.Controllers.Chat
                                         SELECT DISTINCT 
                                                 CM.UserIdTo AS UserIdTo, 
                                                 concat(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS [DisplayNameTo], 
-                                                'Teacher' AS RoleTo
+                                                'Docente' AS RoleTo
                                         FROM ChatMessage AS CM
                                                 INNER JOIN [User] AS UserFrom ON CM.UserIdFrom = UserFrom.Id
                                                 INNER JOIN [UserInformation] AS UserInformationFrom ON UserInformationFrom.Id = UserFrom.UserInformationId
@@ -117,7 +117,7 @@ namespace AppCentroIdiomas.Controllers.Chat
                                 UserIdTo = rdr.GetInt32(0), 
                                 DisplayNameTo = rdr.GetString(1),
                                 LastMessageContent = rdr.GetString(2),
-                                LastMessageSentAt = rdr.GetDateTimeOffset(3),
+                                LastMessageSentAt = rdr.GetDateTimeOffset(3).ToString("yyyy/MM/dd HH:mm:ss"),
                                 RoleTo = rdr.GetString(4), 
                             });
                     }
