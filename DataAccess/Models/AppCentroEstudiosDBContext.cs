@@ -177,9 +177,7 @@ namespace DataAccess.Models
             {
                 entity.ToTable("Post");
 
-                entity.Property(e => e.Description)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
+                entity.Property(e => e.Description).IsUnicode(false);
 
                 entity.Property(e => e.ImageUrl)
                     .HasMaxLength(255)
@@ -187,7 +185,6 @@ namespace DataAccess.Models
 
                 entity.Property(e => e.Name)
                     .IsRequired()
-                    .HasMaxLength(255)
                     .IsUnicode(false);
 
                 entity.HasOne(d => d.UserByType)
