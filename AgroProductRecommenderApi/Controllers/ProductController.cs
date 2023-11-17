@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AgroProductRecommenderApi.Models;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,14 +19,40 @@ namespace AgroProductRecommenderApi.Controllers
             _dbContext = dbContext;
         }
 
-        // GET: api/Products
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        //// GET: api/Products
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        //{
+        //    return await _dbContext.Products.ToListAsync();
+        //}
+
+
+        // GET: api/Product?userId=5
+        [HttpGet("GetProductsByUser")]
+        public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductsByUser(int userId)
         {
-            return await _dbContext.Products.ToListAsync();
+            var user = await _dbContext.Users.FindAsync(userId);
+            
+            var products = await _dbContext.Products
+                .Where(x => x.UserId == user.Id)
+                .Select(x => new ProductModel
+                {
+                    Id = x.Id,
+                    UserId = x.UserId,
+                    Name = x.Name,
+                    Quantity = x.Quantity,
+                    Price = x.Price,
+                    HarvestDate = x.HarvestDate,
+                    ImageUrl = x.ImageUrl,
+                    ProductTypeId = x.ProductTypeId,
+                    ProductPresentationId = x.ProductPresentationId
+                })
+                .ToListAsync();
+
+            return Ok(products);
         }
 
-        // GET: api/Products/5
+        // GET: api/Products
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
@@ -75,8 +102,19 @@ namespace AgroProductRecommenderApi.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Product>> PostCourse(Product product)
+        public async Task<ActionResult<Product>> PostCourse(ProductModel productModel)
         {
+            var product = new Product
+            {
+                UserId = productModel.UserId,
+                Name = productModel.Name,
+                Quantity = productModel.Quantity,
+                Price = productModel.Price,
+                HarvestDate = productModel.HarvestDate,
+                ImageUrl = productModel.ImageUrl,
+                ProductTypeId = productModel.ProductTypeId,
+                ProductPresentationId = productModel.ProductPresentationId
+            };
             _dbContext.Products.Add(product);
             await _dbContext.SaveChangesAsync();
 

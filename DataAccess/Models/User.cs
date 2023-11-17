@@ -20,5 +20,6 @@ namespace DataAccess.Models
 
         public virtual UserInformation UserInformation { get; set; }
         public virtual ICollection<UserByType> UserByTypes { get; set; }
+        public virtual ICollection<Product> Products { get; set; }
     }
 }
