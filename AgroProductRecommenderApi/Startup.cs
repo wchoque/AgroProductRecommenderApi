@@ -1,6 +1,4 @@
 using System;
-using System.Reflection;
-using System.IO;
 using System.Text.Json;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
-namespace AppCentroIdiomas
+namespace AgroProductRecommenderApi
 {
     public class Startup
     {
@@ -25,7 +23,7 @@ namespace AppCentroIdiomas
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<AppCentroEstudiosDBContext>(options =>
+            services.AddDbContext<AgroProductRecommenderDBContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("ConnectionString"))
                 );
 
@@ -35,38 +33,27 @@ namespace AppCentroIdiomas
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 });
 
-#if DEBUG
             services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Centro de Idiomas API", Version = "v1" });
-            });
-#endif
-            //services.AddSwaggerGen();
-
-            // Register the Swagger generator, defining 1 or more Swagger documents
-
-
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new OpenApiInfo
-            //    {
-            //        Version = "v1",
-            //        Title = "ToDo API",
-            //        Description = "A simple example ASP.NET Core Web API",
-            //        TermsOfService = new Uri("https://example.com/terms"),
-            //        Contact = new OpenApiContact
-            //        {
-            //            Name = "Shayne Boyer",
-            //            Email = string.Empty,
-            //            Url = new Uri("https://twitter.com/spboyer"),
-            //        },
-            //        License = new OpenApiLicense
-            //        {
-            //            Name = "Use under LICX",
-            //            Url = new Uri("https://example.com/license"),
-            //        }
-            //    });
-            //});
+                {
+                    c.SwaggerDoc("v1", new OpenApiInfo
+                    {
+                        Title = "Agro Product Recommender API", 
+                        Version = "v1",
+                        Description = "API for a product recommendation system",
+                        TermsOfService = new Uri("https://example.com/terms"),
+                        Contact = new OpenApiContact
+                        {
+                            Name = "Wilber Choque",
+                            Email = "w.choque.itusaca@gmail.com",
+                            Url = new Uri("https://github.com/wchoque"),
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = "Use under LICX",
+                            Url = new Uri("https://example.com/license"),
+                        }
+                    });
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -79,22 +66,17 @@ namespace AppCentroIdiomas
 
             app.UseHttpsRedirection();
 
-#if DEBUG
             //Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger(c =>
             {
                 c.SerializeAsV2 = true;
             });
 
-            //Enable middleware to serve swagger - ui(HTML, JS, CSS, etc.),
-            // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Agro Product Recommender Api V1");
                 //options.RoutePrefix = string.Empty;
             });
-#endif
-
 
             app.UseRouting();
 

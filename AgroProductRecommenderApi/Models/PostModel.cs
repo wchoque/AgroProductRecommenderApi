@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AppCentroIdiomas.Models
+namespace AgroProductRecommenderApi.Models
 {
     public class PostModel
     {

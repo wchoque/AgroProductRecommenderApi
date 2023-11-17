@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DataAccess.Models;
 
-namespace AppCentroIdiomas.Controllers
+namespace AgroProductRecommenderApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class UserInformationController : ControllerBase
     {
-        private readonly AppCentroEstudiosDBContext _context;
+        private readonly AgroProductRecommenderDBContext _context;
 
-        public UserInformationController(AppCentroEstudiosDBContext context)
+        public UserInformationController(AgroProductRecommenderDBContext context)
         {
             _context = context;
         }

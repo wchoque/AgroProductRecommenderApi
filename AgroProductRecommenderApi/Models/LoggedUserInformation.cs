@@ -1,4 +1,4 @@
-﻿namespace AppCentroIdiomas.Models
+﻿namespace AgroProductRecommenderApi.Models
 {
     public class LoggedUserInformation
     {

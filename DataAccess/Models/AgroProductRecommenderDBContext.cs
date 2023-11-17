@@ -1,18 +1,17 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
+//using System.Data.Entity.ModelConfiguration.Conventions;
 
 #nullable disable
 
 namespace DataAccess.Models
 {
-    public partial class AppCentroEstudiosDBContext : DbContext
+    public partial class AgroProductRecommenderDBContext : DbContext
     {
-        public AppCentroEstudiosDBContext()
-        {
-        }
+        //public AgroProductRecommenderDBContext()
+        //{
+        //}
 
-        public AppCentroEstudiosDBContext(DbContextOptions<AppCentroEstudiosDBContext> options)
+        public AgroProductRecommenderDBContext(DbContextOptions<AgroProductRecommenderDBContext> options)
             : base(options)
         {
         }
@@ -29,6 +28,9 @@ namespace DataAccess.Models
         public virtual DbSet<UserByType> UserByTypes { get; set; }
         public virtual DbSet<UserInformation> UserInformations { get; set; }
         public virtual DbSet<UserType> UserTypes { get; set; }
+        public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<ProductType> ProductTypes { get; set; }
+        public virtual DbSet<ProductPresentation> ProductPresentations { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -41,6 +43,9 @@ namespace DataAccess.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+
+
             modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
 
             modelBuilder.Entity<Course>(entity =>
@@ -257,7 +262,61 @@ namespace DataAccess.Models
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<ProductType>(entity =>
+            {
+                entity.ToTable("ProductType");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<ProductPresentation>(entity =>
+            {
+                entity.ToTable("ProductPresentation");
+
+                entity.Property(e => e.Unit)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.ToTable("Product");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+            });
+
             OnModelCreatingPartial(modelBuilder);
+
+            ////Seed data configuration
+            //modelBuilder.Entity<User>()
+            //    .HasData(
+            //        new User
+            //        {
+            //            Id = 1,
+            //            UserName = "wchoque",
+            //            Password = "123123",
+            //            AvatarUrl = "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/default-avatar.png"
+            //        },
+            //        new User
+            //        {
+            //            Id = 2,
+            //            UserName = "wchoque2",
+            //            Password = "123123123",
+            //            AvatarUrl = "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/default-avatar.png"
+            //        }
+            //    );
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
