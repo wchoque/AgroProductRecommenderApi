@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using AgroProductRecommenderApi.Models;
+using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DataAccess.Models;
-using AppCentroIdiomas.Models;
 
-namespace AppCentroIdiomas.Controllers
+namespace AgroProductRecommenderApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class PostController : ControllerBase
     {
-        private readonly AppCentroEstudiosDBContext _context;
+        private readonly AgroProductRecommenderDBContext _context;
 
-        public PostController(AppCentroEstudiosDBContext context)
+        public PostController(AgroProductRecommenderDBContext context)
         {
             _context = context;
         }
@@ -35,7 +33,8 @@ namespace AppCentroIdiomas.Controllers
 
             foreach (var post in posts)
             {
-                var _post = new PostModel {
+                var _post = new PostModel
+                {
                     Id = post.Id,
                     Name = post.Name,
                     Description = post.Description,
@@ -71,7 +70,8 @@ namespace AppCentroIdiomas.Controllers
                 return NotFound();
             }
 
-            var _post = new PostModel {
+            var _post = new PostModel
+            {
                 Id = post.Id,
                 Name = post.Name,
                 Description = post.Description,
