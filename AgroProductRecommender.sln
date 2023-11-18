@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataAccess", "DataAccess\Da
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgroProductRecommenderApi", "AgroProductRecommenderApi\AgroProductRecommenderApi.csproj", "{A053C843-B3E4-4179-93AD-E0FB177F6176}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{8D88DAD7-6AD4-44AA-99E0-836C756FE823}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductRecommender", "ProductRecommender\ProductRecommender.csproj", "{7A19D992-E85E-460B-8460-56EEAA17FB54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,12 +27,17 @@ Global
 		{A053C843-B3E4-4179-93AD-E0FB177F6176}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A053C843-B3E4-4179-93AD-E0FB177F6176}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A053C843-B3E4-4179-93AD-E0FB177F6176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A19D992-E85E-460B-8460-56EEAA17FB54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A19D992-E85E-460B-8460-56EEAA17FB54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A19D992-E85E-460B-8460-56EEAA17FB54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A19D992-E85E-460B-8460-56EEAA17FB54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{41FA0F94-D2B7-4504-898E-EC9462053DA4} = {4F90A503-411D-4709-85BE-C8C460966E60}
+		{7A19D992-E85E-460B-8460-56EEAA17FB54} = {8D88DAD7-6AD4-44AA-99E0-836C756FE823}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {811B7675-5F4F-4FCB-8B34-73BA98CB4CC0}

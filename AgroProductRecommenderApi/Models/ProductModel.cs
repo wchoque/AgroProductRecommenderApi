@@ -10,7 +10,6 @@ namespace AgroProductRecommenderApi.Models
         public int Quantity { get; set; }
         public double Price { get; set; }
         public DateTimeOffset HarvestDate { get; set; }
-        public string ImageUrl { get; set; }
         public int ProductTypeId { get; set; }
         public int ProductPresentationId { get; set; }
     }

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgroProductRecommenderApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {

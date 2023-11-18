@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgroProductRecommenderApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/user-information")]
     [ApiController]
     public class UserInformationController : ControllerBase
     {
@@ -22,14 +22,14 @@ namespace AgroProductRecommenderApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserInformation>>> GetUserInformations()
         {
-            return await _context.UserInformations.ToListAsync();
+            return await _context.UserInformation.ToListAsync();
         }
 
         // GET: api/UserInformation/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserInformation>> GetUserInformation(int id)
         {
-            var userInformation = await _context.UserInformations.FindAsync(id);
+            var userInformation = await _context.UserInformation.FindAsync(id);
 
             if (userInformation == null)
             {
@@ -77,7 +77,7 @@ namespace AgroProductRecommenderApi.Controllers
         [HttpPost]
         public async Task<ActionResult<UserInformation>> PostUserInformation(UserInformation userInformation)
         {
-            _context.UserInformations.Add(userInformation);
+            _context.UserInformation.Add(userInformation);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetUserInformation", new { id = userInformation.Id }, userInformation);
@@ -87,13 +87,13 @@ namespace AgroProductRecommenderApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<UserInformation>> DeleteUserInformation(int id)
         {
-            var userInformation = await _context.UserInformations.FindAsync(id);
+            var userInformation = await _context.UserInformation.FindAsync(id);
             if (userInformation == null)
             {
                 return NotFound();
             }
 
-            _context.UserInformations.Remove(userInformation);
+            _context.UserInformation.Remove(userInformation);
             await _context.SaveChangesAsync();
 
             return userInformation;
@@ -101,7 +101,7 @@ namespace AgroProductRecommenderApi.Controllers
 
         private bool UserInformationExists(int id)
         {
-            return _context.UserInformations.Any(e => e.Id == id);
+            return _context.UserInformation.Any(e => e.Id == id);
         }
     }
 }

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgroProductRecommenderApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/product-recommendations")]
     [ApiController]
     public class ProductRecommendationController : ControllerBase
     {
@@ -22,7 +22,7 @@ namespace AgroProductRecommenderApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetRecommendedProducts(int userId)
         {
-            var user = await _dbContext.Users.FindAsync(userId);
+            //var user = await _dbContext.Users.FindAsync(userId);
 
             return await _dbContext.Products.Take(10).ToListAsync();
         }

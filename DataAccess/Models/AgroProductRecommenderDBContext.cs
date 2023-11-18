@@ -26,12 +26,13 @@ namespace DataAccess.Models
         public virtual DbSet<Semester> Semesters { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UserByType> UserByTypes { get; set; }
-        public virtual DbSet<UserInformation> UserInformations { get; set; }
+        public virtual DbSet<UserInformation> UserInformation { get; set; }
         public virtual DbSet<UserType> UserTypes { get; set; }
-        public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ProductType> ProductTypes { get; set; }
         public virtual DbSet<ProductPresentation> ProductPresentations { get; set; }
-
+        public virtual DbSet<Product> Products { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
+        
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

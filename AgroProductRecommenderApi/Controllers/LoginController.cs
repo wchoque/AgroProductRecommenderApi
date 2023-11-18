@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgroProductRecommenderApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/login")]
     [ApiController]
     public class LoginController : ControllerBase
     {

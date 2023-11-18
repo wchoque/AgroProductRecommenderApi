@@ -8,7 +8,7 @@ using AgroProductRecommenderApi.Models;
 
 namespace AgroProductRecommenderApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/product-presentations")]
     [ApiController]
     public class ProductPresentationController : ControllerBase
     {

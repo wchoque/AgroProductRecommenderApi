@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AgroProductRecommenderApi.Models;
 using DataAccess.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgroProductRecommenderApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -28,11 +30,16 @@ namespace AgroProductRecommenderApi.Controllers
 
 
         // GET: api/Product?userId=5
-        [HttpGet("GetProductsByUser")]
+        [HttpGet("filtered-by-user")]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductsByUser(int userId)
         {
             var user = await _dbContext.Users.FindAsync(userId);
             
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
             var products = await _dbContext.Products
                 .Where(x => x.UserId == user.Id)
                 .Select(x => new ProductModel
@@ -43,7 +50,6 @@ namespace AgroProductRecommenderApi.Controllers
                     Quantity = x.Quantity,
                     Price = x.Price,
                     HarvestDate = x.HarvestDate,
-                    ImageUrl = x.ImageUrl,
                     ProductTypeId = x.ProductTypeId,
                     ProductPresentationId = x.ProductPresentationId
                 })
@@ -111,7 +117,6 @@ namespace AgroProductRecommenderApi.Controllers
                 Quantity = productModel.Quantity,
                 Price = productModel.Price,
                 HarvestDate = productModel.HarvestDate,
-                ImageUrl = productModel.ImageUrl,
                 ProductTypeId = productModel.ProductTypeId,
                 ProductPresentationId = productModel.ProductPresentationId
             };
@@ -135,6 +140,79 @@ namespace AgroProductRecommenderApi.Controllers
             await _dbContext.SaveChangesAsync();
 
             return product;
+        }
+
+
+
+        //TODO Implement handle images
+
+        [HttpPost("upload-images")]
+        public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> files, [FromForm] int id)
+        {
+            var product = _dbContext.Products
+                .Include(p => p.Images)
+                .FirstOrDefault(p => p.Id == id);
+
+            if (product == null)
+            {
+                return NotFound("Product not found");
+            }
+
+            foreach (var file in files)
+            {
+                if (file.Length == 0)
+                {
+                    continue;
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+
+                    var image = new ProductImage
+                    {
+                        ImageData = memoryStream.ToArray(),
+                        Product = product,
+                    };
+
+                    product.Images.Add(image);
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { product.Id });
+        }
+
+        [HttpGet("{id}/get-images")]
+        public async Task<ActionResult<IEnumerable<string>>> GetImages(int id)
+        {
+            var product = await _dbContext.Products
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (product == null)
+            {
+                return NotFound("Product not found");
+            }
+
+            var imageUrls = product.Images
+                .Select(img => Url.Action(nameof(GetImage), new { imageId = img.Id })).ToList();
+
+            return Ok(imageUrls);
+        }
+
+        [HttpGet("get-image/{imageId}")]
+        public IActionResult GetImage(int imageId)
+        {
+            var image = _dbContext.ProductImages.Find(imageId);
+
+            if (image == null || image.ImageData == null)
+            {
+                return NotFound("Image not found");
+            }
+
+            return File(image.ImageData, "image/jpeg");
         }
 
         private bool ProductExists(int id)
