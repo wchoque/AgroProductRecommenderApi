@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-//using System.Data.Entity.ModelConfiguration.Conventions;
-
 #nullable disable
 
 namespace DataAccess.Models
@@ -31,22 +29,20 @@ namespace DataAccess.Models
         public virtual DbSet<ProductType> ProductTypes { get; set; }
         public virtual DbSet<ProductPresentation> ProductPresentations { get; set; }
         public virtual DbSet<Product> Products { get; set; }
-        public DbSet<ProductImage> ProductImages { get; set; }
-        
+        public virtual DbSet<ProductImage> ProductImages { get; set; }
+        public virtual DbSet<FavoriteProduct> FavoriteProducts { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Description= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
                 //optionsBuilder.UseSqlServer("Server=.;Database=AppCentroEstudiosDB;Trusted_Connection=True;");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
-
-
             modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
 
             modelBuilder.Entity<Course>(entity =>
@@ -287,12 +283,12 @@ namespace DataAccess.Models
             {
                 entity.ToTable("Product");
 
-                entity.Property(e => e.Name)
+                entity.Property(e => e.Description)
                     .IsRequired()
                     .HasMaxLength(255)
                     .IsUnicode(false);
 
-                entity.Property(e => e.Name)
+                entity.Property(e => e.Description)
                     .IsRequired()
                     .HasMaxLength(255)
                     .IsUnicode(false);

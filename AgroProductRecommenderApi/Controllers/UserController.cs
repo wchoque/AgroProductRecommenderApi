@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AgroProductRecommenderApi.Models;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +71,30 @@ namespace AgroProductRecommenderApi.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("{id}/update-profile")]
+        public IActionResult UpdateProfile(int id, UserInformationModel updatedInfo)
+        {
+            var user = _context.Users
+                .Include(u => u.UserInformation)
+                .FirstOrDefault(u => u.Id == id);
+
+            if (user == null) 
+                return NotFound();
+
+            user.UserInformation.FirstName = updatedInfo.FirstName;
+            user.UserInformation.LastName = updatedInfo.LastName;
+            user.UserInformation.Email = updatedInfo.Email;
+            user.UserInformation.PhoneNumber = updatedInfo.PhoneNumber;
+            user.UserInformation.Gender = updatedInfo.Gender;
+            user.UserInformation.Bio = updatedInfo.Bio;
+            user.UserInformation.WebpageUrl = updatedInfo.WebpageUrl;
+            user.UserInformation.Dni = updatedInfo.Dni;
+
+            _context.SaveChanges();
+            return Ok(user);
+        }
+
 
         // POST: api/Users
         // To protect from overposting attacks, enable the specific properties you want to bind to, for

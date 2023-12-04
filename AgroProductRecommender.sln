@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgroProductRecommenderApi",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{8D88DAD7-6AD4-44AA-99E0-836C756FE823}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductRecommender", "ProductRecommender\ProductRecommender.csproj", "{7A19D992-E85E-460B-8460-56EEAA17FB54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductRecommender", "ProductRecommender\ProductRecommender.csproj", "{7A19D992-E85E-460B-8460-56EEAA17FB54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductRecommender.Tests", "ProductRecommender.Tests\ProductRecommender.Tests.csproj", "{0E80A32F-8864-4146-9620-1812BF99065C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,10 @@ Global
 		{7A19D992-E85E-460B-8460-56EEAA17FB54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A19D992-E85E-460B-8460-56EEAA17FB54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A19D992-E85E-460B-8460-56EEAA17FB54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E80A32F-8864-4146-9620-1812BF99065C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E80A32F-8864-4146-9620-1812BF99065C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E80A32F-8864-4146-9620-1812BF99065C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E80A32F-8864-4146-9620-1812BF99065C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

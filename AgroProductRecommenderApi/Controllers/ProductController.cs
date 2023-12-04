@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AgroProductRecommenderApi.Models;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +33,7 @@ namespace AgroProductRecommenderApi.Controllers
 
         // GET: api/Product?userId=5
         [HttpGet("filtered-by-user")]
-        public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductsByUser(int userId)
+        public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductsByUser(int userId, string description = "")
         {
             var user = await _dbContext.Users.FindAsync(userId);
             
@@ -40,16 +42,36 @@ namespace AgroProductRecommenderApi.Controllers
                 return NotFound("User not found");
             }
 
-            var products = await _dbContext.Products
-                .Where(x => x.UserId == user.Id)
+            var query = _dbContext.Products
+                .Include(x => x.Images)
+                .Include(x => x.ProductType)
+                .Include(x => x.ProductPresentation)
+                .Include(x => x.User)
+                .ThenInclude(x => x.UserInformation)
+                .Where(x => x.UserId == user.Id);
+
+            if (!string.IsNullOrEmpty(description))
+            {
+                query = query.Where(x => x.Description.Contains(description));
+            }
+
+            var products = await query
                 .Select(x => new ProductModel
                 {
                     Id = x.Id,
                     UserId = x.UserId,
-                    Name = x.Name,
+                    Description = x.Description,
+                    Location = x.Location,
                     Quantity = x.Quantity,
                     Price = x.Price,
-                    HarvestDate = x.HarvestDate,
+                    HarvestDate = x.HarvestDate.ToString("G"),
+                    CreatedAt = x.CreatedAt.ToString("G"),
+                    CreatedBy = $"{x.User.UserInformation.FirstName} {x.User.UserInformation.LastName}",
+                    ProductTypeName = x.ProductType.Name,
+                    ProductPresentationUnit = x.ProductPresentation.Unit,
+                    //DefaultImageUrl = $"https://lm-test-d-aze2-app-001.azurewebsites.net/api/products/get-image/{x.Images.FirstOrDefault().Id}",
+                    DefaultImageUrl = "https://i0.wp.com/diarioelpueblo.com.pe/wp-content/uploads/2022/03/2-Exportan-cebolla-a-Ecuador_.jpg?w=748&ssl=1",
+                    //DefaultImageUrl = Url.Action(nameof(GetImage), new { imageId = x.Images.FirstOrDefault().Id }),
                     ProductTypeId = x.ProductTypeId,
                     ProductPresentationId = x.ProductPresentationId
                 })
@@ -76,15 +98,22 @@ namespace AgroProductRecommenderApi.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCourse(int id, Product product)
+        public async Task<IActionResult> PutCourse(int id, ProductModel product)
         {
             if (id != product.Id)
             {
                 return BadRequest();
             }
 
-            _dbContext.Entry(product).State = EntityState.Modified;
+            var existingProduct = await _dbContext.Products.FindAsync(id);
 
+            existingProduct.Description = product.Description;
+            existingProduct.Location = product.Location;
+            existingProduct.Quantity = product.Quantity;
+            existingProduct.Price = product.Price;
+            existingProduct.HarvestDate = DateTime.Parse(product.HarvestDate);
+            existingProduct.ProductTypeId = product.ProductTypeId;
+            existingProduct.ProductPresentationId = product.ProductPresentationId;
             try
             {
                 await _dbContext.SaveChangesAsync();
@@ -113,10 +142,12 @@ namespace AgroProductRecommenderApi.Controllers
             var product = new Product
             {
                 UserId = productModel.UserId,
-                Name = productModel.Name,
+                Description = productModel.Description,
+                Location = productModel.Location,
                 Quantity = productModel.Quantity,
                 Price = productModel.Price,
-                HarvestDate = productModel.HarvestDate,
+                HarvestDate = DateTime.Parse(productModel.HarvestDate),
+                CreatedAt = DateTimeOffset.Now,
                 ProductTypeId = productModel.ProductTypeId,
                 ProductPresentationId = productModel.ProductPresentationId
             };
@@ -199,7 +230,7 @@ namespace AgroProductRecommenderApi.Controllers
             var imageUrls = product.Images
                 .Select(img => Url.Action(nameof(GetImage), new { imageId = img.Id })).ToList();
 
-            return Ok(imageUrls);
+            return Ok(new { imageUrls});
         }
 
         [HttpGet("get-image/{imageId}")]

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using AgroProductRecommenderApi.Models;
+using AgroProductRecommenderApi.Services;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +22,16 @@ namespace AgroProductRecommenderApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
         {
-            if (!await IsValidUser(loginModel))
+            var foundUser = await _dbContext.Users.FirstAsync(x =>
+                x.IsActive &&
+                x.UserName.Equals(loginModel.UserName));
+
+            if (foundUser == null)
+            {
+                return NotFound();
+            }
+
+            if (!PasswordHasher.VerifyPassword(foundUser.Password, loginModel.Password))
             {
                 return Unauthorized();
             }
@@ -29,8 +40,7 @@ namespace AgroProductRecommenderApi.Controllers
                 .Include(x => x.UserInformation)
                 .FirstAsync(x =>
                     x.IsActive &&
-                    x.UserName.Equals(loginModel.UserName) &&
-                    x.Password.Equals(loginModel.Password));
+                    x.UserName.Equals(loginModel.UserName));
 
             var userInformation = new LoggedUserInformation
             {
@@ -45,12 +55,31 @@ namespace AgroProductRecommenderApi.Controllers
             return Ok(userInformation);
         }
 
-        private async Task<bool> IsValidUser(LoginModel loginModel)
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel changePasswordModel)
         {
-            return await _dbContext.Users.AnyAsync(x =>
-                x.IsActive &&
-                x.UserName.Equals(loginModel.UserName) &&
-                x.Password.Equals(loginModel.Password));
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(x => x.IsActive && x.UserName.Equals(changePasswordModel.UserName));
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!PasswordHasher.VerifyPassword(user.Password, changePasswordModel.CurrentPassword))
+            {
+                return Unauthorized();
+            }
+
+            user.Password = HashPassword(changePasswordModel.NewPassword);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(); // Cambio de contraseña exitoso
+        }
+
+        private string HashPassword(string password)
+        {
+            return PasswordHasher.HashPassword(password);
         }
     }
 }

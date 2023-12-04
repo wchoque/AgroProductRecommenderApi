@@ -9,6 +9,7 @@ namespace DataAccess.Models
         public User()
         {
             UserByTypes = new HashSet<UserByType>();
+            //FavoriteProducts = new HashSet<FavoriteProduct>();
         }
 
         public int Id { get; set; }
@@ -21,5 +22,6 @@ namespace DataAccess.Models
         public virtual UserInformation UserInformation { get; set; }
         public virtual ICollection<UserByType> UserByTypes { get; set; }
         public virtual ICollection<Product> Products { get; set; }
+        //public virtual ICollection<FavoriteProduct> FavoriteProducts { get; set; }
     }
 }
