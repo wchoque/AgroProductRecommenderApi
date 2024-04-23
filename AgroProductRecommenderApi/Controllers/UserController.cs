@@ -79,7 +79,7 @@ namespace AgroProductRecommenderApi.Controllers
                 .Include(u => u.UserInformation)
                 .FirstOrDefault(u => u.Id == id);
 
-            if (user == null) 
+            if (user == null)
                 return NotFound();
 
             user.UserInformation.FirstName = updatedInfo.FirstName;
@@ -92,7 +92,8 @@ namespace AgroProductRecommenderApi.Controllers
             user.UserInformation.Dni = updatedInfo.Dni;
 
             _context.SaveChanges();
-            return Ok(user);
+            UserInformation userInformation = user.UserInformation;
+            return Ok(userInformation);
         }
 
 

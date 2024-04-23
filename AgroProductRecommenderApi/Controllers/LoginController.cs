@@ -38,13 +38,18 @@ namespace AgroProductRecommenderApi.Controllers
 
             var user = await _dbContext.Users
                 .Include(x => x.UserInformation)
+                .Include(x => x.UserByTypes)
                 .FirstAsync(x =>
                     x.IsActive &&
                     x.UserName.Equals(loginModel.UserName));
 
+            var userType = user.UserByTypes.FirstOrDefault(x => x.UserId == user.Id)!.UserTypeId;
             var userInformation = new LoggedUserInformation
             {
                 Id = user.Id,
+                UserId = user.Id,
+                UserName = user.UserName,
+                UserType = userType,
                 FirstName = user.UserInformation.FirstName,
                 LastName = user.UserInformation.LastName,
                 Avatar = user.AvatarUrl,
@@ -59,6 +64,7 @@ namespace AgroProductRecommenderApi.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel changePasswordModel)
         {
             var user = await _dbContext.Users
+                .Include(x => x.UserInformation)
                 .FirstOrDefaultAsync(x => x.IsActive && x.UserName.Equals(changePasswordModel.UserName));
 
             if (user == null)
@@ -74,7 +80,17 @@ namespace AgroProductRecommenderApi.Controllers
             user.Password = HashPassword(changePasswordModel.NewPassword);
             await _dbContext.SaveChangesAsync();
 
-            return Ok(); // Cambio de contraseña exitoso
+            var userInformation = new LoggedUserInformation
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                FirstName = user.UserInformation.FirstName,
+                LastName = user.UserInformation.LastName,
+                Avatar = user.AvatarUrl,
+                Email = user.UserInformation.Email,
+                DisplayName = string.Concat(user.UserInformation.FirstName, " ", user.UserInformation.LastName)
+            };
+            return Ok(userInformation);
         }
 
         private string HashPassword(string password)
