@@ -245,7 +245,7 @@ namespace DataAccess.Models
                     .IsUnicode(false);
 
                 entity.Property(e => e.PhoneNumber)
-                    .HasMaxLength(9)
+                    .HasMaxLength(50)
                     .IsUnicode(false);
             });
 
