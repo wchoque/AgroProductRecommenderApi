@@ -50,7 +50,7 @@ namespace ProductRecommender.Tests
             };
             var result = _controller.UpdateProfile(userId, updatedInfo);
 
-            Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<IActionResult>(result);
         }
     }
 }

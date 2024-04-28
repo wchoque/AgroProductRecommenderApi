@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AgroProductRecommenderApi.Controllers.DTOs;
@@ -73,8 +74,8 @@ namespace AgroProductRecommenderApi.Controllers
             return NoContent();
         }
 
-        [HttpPost("{id}/update-profile")]
-        public IActionResult UpdateProfile(int id, UserInformationModel updatedInfo)
+        [HttpPost("{id}/update-profile"), DisableRequestSizeLimit]
+        public async Task<IActionResult> UpdateProfile(int id, [FromForm] UserInformationModel updatedInfo)
         {
             var user = _context.Users
                 .FirstOrDefault(u => u.Id == id);
@@ -96,8 +97,19 @@ namespace AgroProductRecommenderApi.Controllers
             userInformation.WebpageUrl = updatedInfo.WebpageUrl;
             userInformation.Dni = updatedInfo.Dni;
 
-            _context.SaveChanges();
+            // Manejar la carga del archivo
+            var imageFile = updatedInfo.ProfilePicture;
+            if (imageFile is { Length: > 0 })
+            {
+                using var memoryStream = new MemoryStream();
+                await imageFile.CopyToAsync(memoryStream);
 
+                userInformation.AvatarData = memoryStream.ToArray();
+            }
+
+            await _context.SaveChangesAsync();
+
+            var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = id })}";
             var userInformationDto = new UserInformationDTO
             {
                 Id = userInformation.Id,
@@ -108,10 +120,35 @@ namespace AgroProductRecommenderApi.Controllers
                 Gender = userInformation.Gender,
                 Bio = userInformation.Bio,
                 WebpageUrl = userInformation.WebpageUrl,
-                Dni = userInformation.Dni
+                Dni = userInformation.Dni,
+                ImageUrl = imageUrl
             };
 
             return Ok(userInformationDto);
+        }
+
+
+        [HttpGet("users/{id}/profile-picture")]
+        public IActionResult GetProfilePicture(int id)
+        {
+
+            var user = _context.Users
+                .FirstOrDefault(u => u.Id == id);
+            if (user == null)
+                return NotFound();
+
+            var userInformation = _context.UserInformation.FirstOrDefault(x => x.Id == user.UserInformationId);
+            if (userInformation == null)
+                return NotFound();
+
+            if (userInformation.AvatarData == null)
+            {
+                var defaultAvatarUrl = "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/default-avatar.png";
+                return Redirect(defaultAvatarUrl);
+            }
+
+            var imageBytes = userInformation.AvatarData;
+            return File(imageBytes, "image/jpeg");
         }
 
 

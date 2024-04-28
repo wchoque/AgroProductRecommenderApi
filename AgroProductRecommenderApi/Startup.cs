@@ -27,6 +27,15 @@ namespace AgroProductRecommenderApi
                     options.UseSqlServer(Configuration.GetConnectionString("ConnectionString"))
                 );
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder => builder
+                        .WithOrigins("https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+            });
+
             services.AddControllers()
                 .AddJsonOptions(options =>
                 {
@@ -38,7 +47,7 @@ namespace AgroProductRecommenderApi
                 {
                     c.SwaggerDoc("v1", new OpenApiInfo
                     {
-                        Title = "Agro Product Recommender API", 
+                        Title = "Agro Product Recommender API",
                         Version = "v1",
                         Description = "API for a product recommendation system",
                         TermsOfService = new Uri("https://example.com/terms"),
@@ -80,6 +89,8 @@ namespace AgroProductRecommenderApi
             });
 
             app.UseRouting();
+
+            app.UseCors("AllowSpecificOrigin");
 
             app.UseAuthorization();
 

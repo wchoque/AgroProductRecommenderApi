@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AgroProductRecommenderApi.Controllers.DTOs;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,14 +21,16 @@ namespace AgroProductRecommenderApi.Controllers
 
         // GET: api/UserInformation
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserInformation>>> GetUserInformations()
+        public async Task<ActionResult<IEnumerable<UserInformationDTO>>> GetUserInformations()
         {
-            return await _context.UserInformation.ToListAsync();
+            var usersInformation = await _context.UserInformation.ToListAsync();
+            var items = usersInformation.Select(x => Convert(x, "testing")).ToList();
+            return items;
         }
 
         // GET: api/UserInformation/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserInformation>> GetUserInformation(int id)
+        public async Task<IActionResult> GetUserInformation(int id)
         {
             var userInformation = await _context.UserInformation.FindAsync(id);
 
@@ -35,8 +38,9 @@ namespace AgroProductRecommenderApi.Controllers
             {
                 return NotFound();
             }
+            var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = id })}";
 
-            return userInformation;
+            return Ok(Convert(userInformation, imageUrl));
         }
 
         // PUT: api/UserInformation/5
@@ -102,6 +106,23 @@ namespace AgroProductRecommenderApi.Controllers
         private bool UserInformationExists(int id)
         {
             return _context.UserInformation.Any(e => e.Id == id);
+        }
+
+        private UserInformationDTO Convert(UserInformation userInformation, string imageUrl)
+        {
+            return new UserInformationDTO
+            {
+                Id = userInformation.Id,
+                FirstName = userInformation.FirstName,
+                LastName = userInformation.LastName,
+                Email = userInformation.Email,
+                PhoneNumber = userInformation.PhoneNumber,
+                Gender = userInformation.Gender,
+                Bio = userInformation.Bio,
+                WebpageUrl = userInformation.WebpageUrl,
+                Dni = userInformation.Dni,
+                ImageUrl = imageUrl
+            };
         }
     }
 }
