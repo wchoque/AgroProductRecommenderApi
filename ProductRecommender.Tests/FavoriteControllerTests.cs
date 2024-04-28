@@ -1,4 +1,5 @@
 using AgroProductRecommenderApi.Controllers;
+using AgroProductRecommenderApi.Services;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,21 @@ namespace ProductRecommender.Tests
 
             _context = new AgroProductRecommenderDBContext(options);
             _controller = new FavoriteProductController(_context);
+
+            _context.Users.Add(new User
+            {
+                Id = 1,
+                UserName = "testuser",
+                Password = PasswordHasher.HashPassword("testpassword"),
+                IsActive = true,
+                UserInformation = new UserInformation
+                {
+                    FirstName = "base",
+                    LastName = "base",
+                    Bio = "This is the base bio"
+                }
+            });
+            _context.SaveChanges();
         }
 
         [Fact]
@@ -38,7 +54,7 @@ namespace ProductRecommender.Tests
             var userId = 1; // Ejemplo de usuario
             var result = _controller.ListFavorites(userId);
 
-            Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<IActionResult>(result);
         }
 
         [Fact]

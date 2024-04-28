@@ -10,6 +10,7 @@ using AgroProductRecommenderApi;
 using AgroProductRecommenderApi.Models.Chat;
 using AgroProductRecommenderApi.Models.Chat.UserChat;
 using DataAccess.Models;
+using AgroProductRecommenderApi.Models;
 
 namespace AppCentroIdiomas.Controllers.Chat
 {
@@ -164,6 +165,11 @@ namespace AppCentroIdiomas.Controllers.Chat
                 }
             }
 
+            foreach (var availableUser in result.AvailableUsersList)
+            {
+                var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = availableUser.UserIdTo })}";
+                availableUser.ImageUrl = imageUrl;
+            }
             return Ok(new { availableUsers = result.AvailableUsersList });
         }
 
@@ -274,6 +280,40 @@ namespace AppCentroIdiomas.Controllers.Chat
 
             return historyChat;
         }
+
+
+        [HttpGet("GetMessages/{userIdFrom}/{userIdTo}")]
+        public async Task<IActionResult> GetMessages(int userIdFrom, int userIdTo)
+        {
+            var fromUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == userIdFrom);
+            if (fromUser == null)
+            {
+                return NotFound("From User not found");
+            }
+
+            var toUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == userIdTo);
+            if (toUser == null)
+            {
+                return NotFound("To User not found");
+            }
+
+            // Obtener los mensajes entre los usuarios
+            var chats = await _context.ProductChatMessages
+                .Where(x => (x.UserIdFrom == userIdFrom && x.UserIdTo == userIdTo) || (x.UserIdFrom == userIdTo && x.UserIdTo == userIdFrom))
+                .OrderByDescending(x => x.SentAt)
+                .ToListAsync();
+
+            // Formatear los mensajes para la respuesta
+            var response = chats.Select(chat => new
+            {
+                message = chat.MessageContent,
+                senderId = chat.UserIdFrom,
+                timestamp = chat.SentAt.ToString("yyyy-MM-ddTHH:mm:ss.fffffffzzz")
+            }).ToList();
+
+            return Ok(response);
+        }
+
 
         // GET: api/ChatMessage/5
         [HttpGet("GetHistoryChatv2/{userIdFrom}/{userIdTo}")]
