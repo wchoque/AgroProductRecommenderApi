@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AgroProductRecommenderApi.Controllers.DTOs;
 using AgroProductRecommenderApi.Models;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -76,24 +77,41 @@ namespace AgroProductRecommenderApi.Controllers
         public IActionResult UpdateProfile(int id, UserInformationModel updatedInfo)
         {
             var user = _context.Users
-                .Include(u => u.UserInformation)
                 .FirstOrDefault(u => u.Id == id);
 
             if (user == null)
                 return NotFound();
 
-            user.UserInformation.FirstName = updatedInfo.FirstName;
-            user.UserInformation.LastName = updatedInfo.LastName;
-            user.UserInformation.Email = updatedInfo.Email;
-            user.UserInformation.PhoneNumber = updatedInfo.PhoneNumber;
-            user.UserInformation.Gender = updatedInfo.Gender;
-            user.UserInformation.Bio = updatedInfo.Bio;
-            user.UserInformation.WebpageUrl = updatedInfo.WebpageUrl;
-            user.UserInformation.Dni = updatedInfo.Dni;
+            var userInformation = _context.UserInformation.FirstOrDefault(x => x.Id == user.UserInformationId);
+
+            if (userInformation == null)
+                return NotFound();
+
+            userInformation.FirstName = updatedInfo.FirstName;
+            userInformation.LastName = updatedInfo.LastName;
+            userInformation.Email = updatedInfo.Email;
+            userInformation.PhoneNumber = updatedInfo.PhoneNumber;
+            userInformation.Gender = updatedInfo.Gender;
+            userInformation.Bio = updatedInfo.Bio;
+            userInformation.WebpageUrl = updatedInfo.WebpageUrl;
+            userInformation.Dni = updatedInfo.Dni;
 
             _context.SaveChanges();
-            UserInformation userInformation = user.UserInformation;
-            return Ok(userInformation);
+
+            var userInformationDto = new UserInformationDTO
+            {
+                Id = userInformation.Id,
+                FirstName = userInformation.FirstName,
+                LastName = userInformation.LastName,
+                Email = userInformation.Email,
+                PhoneNumber = userInformation.PhoneNumber,
+                Gender = userInformation.Gender,
+                Bio = userInformation.Bio,
+                WebpageUrl = userInformation.WebpageUrl,
+                Dni = userInformation.Dni
+            };
+
+            return Ok(userInformationDto);
         }
 
 

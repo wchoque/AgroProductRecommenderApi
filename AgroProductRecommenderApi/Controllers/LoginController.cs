@@ -93,6 +93,13 @@ namespace AgroProductRecommenderApi.Controllers
             return Ok(userInformation);
         }
 
+        [HttpGet("get-password/{password}")]
+        public async Task<IActionResult> GetPassword(string password)
+        {
+            return Ok(new { Password = HashPassword(password) });
+        }
+
+
         private string HashPassword(string password)
         {
             return PasswordHasher.HashPassword(password);

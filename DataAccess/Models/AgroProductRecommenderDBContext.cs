@@ -31,6 +31,8 @@ namespace DataAccess.Models
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ProductImage> ProductImages { get; set; }
         public virtual DbSet<FavoriteProduct> FavoriteProducts { get; set; }
+        //public virtual DbSet<ChatMessage> ChatMessages { get; set; }
+        public virtual DbSet<ProductChatMessage> ProductChatMessages { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -292,6 +294,11 @@ namespace DataAccess.Models
                     .IsRequired()
                     .HasMaxLength(255)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<ProductChatMessage>(entity =>
+            {
+                entity.ToTable("ProductChatMessage");
             });
 
             OnModelCreatingPartial(modelBuilder);

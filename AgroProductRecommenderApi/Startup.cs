@@ -30,6 +30,7 @@ namespace AgroProductRecommenderApi
             services.AddControllers()
                 .AddJsonOptions(options =>
                 {
+                    //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;//Fix to avoid System.Text.Json.JsonException: A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 });
 

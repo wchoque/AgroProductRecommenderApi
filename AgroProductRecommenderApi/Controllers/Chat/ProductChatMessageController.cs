@@ -57,44 +57,85 @@ namespace AppCentroIdiomas.Controllers.Chat
                 conn.Open();
 
                 var query =  @$"
-                                SELECT AvailableUsers.UserIdTo, 
-                                        AvailableUsers.DisplayNameTo, 
-                                        CM.LastMessageContent, 
-                                        CM.LastMessageSentAt, 
-                                        AvailableUsers.RoleTo
+                                SELECT DISTINCT
+                                    COALESCE(Sent.UserIdTo, Received.UserIdFrom, SentResponded.UserIdTo, ReceivedResponded.UserIdFrom) AS UserIdTo,
+                                    COALESCE(Sent.DisplayName, Received.DisplayName, SentResponded.DisplayName, ReceivedResponded.DisplayName) AS DisplayNameTo,
+                                    COALESCE(Sent.LastMessage, Received.LastMessage, SentResponded.LastMessage, ReceivedResponded.LastMessage) AS LastMessageContent,
+                                    COALESCE(Sent.LastMessageSentAt, Received.LastMessageSentAt, SentResponded.LastMessageSentAt, ReceivedResponded.LastMessageSentAt) AS LastMessageSentAt,
+                                    COALESCE(Sent.Role, Received.Role, SentResponded.Role, ReceivedResponded.Role) AS RoleTo
                                 FROM
-                                (
-                                    SELECT DISTINCT 
-                                            CM.UserIdTo AS UserIdTo, 
-                                            concat(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS [DisplayNameTo], 
-                                            UserTypeTo.Name AS RoleTo
-                                    FROM ProductChatMessage AS CM
-                                            INNER JOIN [User] AS UserFrom ON CM.UserIdFrom = UserFrom.Id
-                                            INNER JOIN [UserInformation] AS UserInformationFrom ON UserInformationFrom.Id = UserFrom.UserInformationId
-                                            INNER JOIN [User] AS UserTo ON CM.UserIdTo = UserTo.Id
-                                            INNER JOIN [UserInformation] AS UserInformationTo ON UserInformationTo.Id = UserTo.UserInformationId
-			                                INNER JOIN [UserByType] AS UserByTypeTo ON UserByTypeTo.UserId = UserTo.Id
-			                                INNER JOIN [UserType] AS UserTypeTo ON UserByTypeTo.UserTypeId = UserTypeTo.Id
-                                    WHERE UserIdFrom = @userIdFrom
-                                ) AS AvailableUsers
-                                INNER JOIN
-                                (
-                                    SELECT *
-                                    FROM
-                                    (
-                                        SELECT ROW_NUMBER() OVER(PARTITION BY UserIdTo
-                                                ORDER BY SentAt DESC) AS RowNumber, 
-                                                Id, 
-                                                UserIdFrom, 
-                                                UserIdTo, 
-                                                MessageContent AS LastMessageContent, 
-                                                SentAt AS LastMessageSentAt, 
-                                                ReadAt
-                                        FROM ProductChatMessage
-                                        WHERE ProductChatMessage.UserIdFrom = @userIdFrom
-                                    ) AS tb1
-                                    WHERE RowNumber = 1
-                                ) AS CM ON AvailableUsers.UserIdTo = CM.UserIdTo
+                                    -- Sent, not responded
+                                    (SELECT 
+                                        UserIdTo, 
+                                        CONCAT(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayName,
+                                        UserTypeTo.Name AS Role,
+                                        MessageContent AS LastMessage, 
+                                        SentAt AS LastMessageSentAt
+                                    FROM ProductChatMessage
+                                    INNER JOIN [User] AS UserTo ON UserIdTo = UserTo.Id
+                                    INNER JOIN [UserInformation] AS UserInformationTo ON UserTo.UserInformationId = UserInformationTo.Id
+	                                INNER JOIN [UserByType] AS UseByTypeTo ON UseByTypeTo.UserId = UserTo.Id
+                                    INNER JOIN [UserType] AS UserTypeTo ON UserTypeTo.Id = UseByTypeTo.UserTypeId
+                                    WHERE UserIdFrom = @UserIdFrom
+                                    AND NOT EXISTS (
+                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = UserIdTo AND UserIdTo = @UserIdFrom
+                                    )
+                                    ) AS Sent
+                                FULL OUTER JOIN
+                                    -- Received, not responded
+                                    (SELECT 
+                                        UserIdFrom, 
+                                        CONCAT(UserInformationFrom.FirstName, ' ', UserInformationFrom.LastName) AS DisplayName,
+                                        UserTypeFrom.Name AS Role,
+                                        MessageContent AS LastMessage, 
+                                        SentAt AS LastMessageSentAt
+                                    FROM ProductChatMessage
+                                    INNER JOIN [User] AS UserFrom ON UserIdFrom = UserFrom.Id
+                                    INNER JOIN [UserInformation] AS UserInformationFrom ON UserFrom.UserInformationId = UserInformationFrom.Id
+                                    INNER JOIN [UserByType] AS UseByTypeFrom ON UseByTypeFrom.UserId = UserFrom.Id
+                                    INNER JOIN [UserType] AS UserTypeFrom ON UserTypeFrom.Id = UseByTypeFrom.UserTypeId
+                                    WHERE UserIdTo = @UserIdFrom
+                                    AND NOT EXISTS (
+                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = @UserIdFrom AND UserIdTo = UserIdFrom
+                                    )
+                                    ) AS Received ON Sent.UserIdTo = Received.UserIdFrom
+                                FULL OUTER JOIN
+                                    -- Sent, responded
+                                    (SELECT 
+                                        UserIdTo, 
+                                        CONCAT(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayName,
+                                        UserTypeTo.Name AS Role,
+                                        MessageContent AS LastMessage, 
+                                        SentAt AS LastMessageSentAt
+                                    FROM ProductChatMessage
+                                    INNER JOIN [User] AS UserTo ON UserIdTo = UserTo.Id
+                                    INNER JOIN [UserInformation] AS UserInformationTo ON UserTo.UserInformationId = UserInformationTo.Id
+	                                INNER JOIN [UserByType] AS UseByTypeTo ON UseByTypeTo.UserId = UserTo.Id
+                                    INNER JOIN [UserType] AS UserTypeTo ON UserTypeTo.Id = UseByTypeTo.UserTypeId
+                                    WHERE UserIdFrom = @UserIdFrom
+                                    AND EXISTS (
+                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = UserIdTo AND UserIdTo = @UserIdFrom
+                                    )
+                                    ) AS SentResponded ON Sent.UserIdTo = SentResponded.UserIdTo
+                                FULL OUTER JOIN
+                                    -- Received, responded
+                                    (SELECT 
+                                        UserIdFrom, 
+                                        CONCAT(UserInformationFrom.FirstName, ' ', UserInformationFrom.LastName) AS DisplayName,
+                                        UserTypeFrom.Name AS Role,
+                                        MessageContent AS LastMessage, 
+                                        SentAt AS LastMessageSentAt
+                                    FROM ProductChatMessage
+                                    INNER JOIN [User] AS UserFrom ON UserIdFrom = UserFrom.Id
+                                    INNER JOIN [UserInformation] AS UserInformationFrom ON UserFrom.UserInformationId = UserInformationFrom.Id
+                                    INNER JOIN [UserByType] AS UseByTypeFrom ON UseByTypeFrom.UserId = UserFrom.Id
+                                    INNER JOIN [UserType] AS UserTypeFrom ON UserTypeFrom.Id = UseByTypeFrom.UserTypeId
+                                    WHERE UserIdTo = @UserIdFrom
+                                    AND EXISTS (
+                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = @UserIdFrom AND UserIdTo = UserIdFrom
+                                    )
+                                    ) AS ReceivedResponded ON Received.UserIdFrom = ReceivedResponded.UserIdFrom
+
                         ";
                 // 1.  create a command object identifying the stored procedure
                 var command = new SqlCommand(query, conn);
@@ -142,44 +183,44 @@ namespace AppCentroIdiomas.Controllers.Chat
                 conn.Open();
 
                 var query = @$"
-                            SELECT UserIdTo, 
-                                   DisplayNameTo, 
-                                   MessageContent, 
-                                   SentAt, 
-                                   ReadAt, 
-                                   CONVERT(BIT, IsRead) AS IsRead, 
-                                   CONVERT(BIT, IIF(UserIdTo = @UserIdTo, 1, 0)) AS IsSent
-                            FROM
-                            (
-                                SELECT CM.UserIdTo AS UserIdTo, 
-                                       concat(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayNameTo, 
-                                       CM.MessageContent AS MessageContent, 
-                                       SentAt AS SentAt, 
-                                       ReadAt AS ReadAt, 
-                                       IIF(ReadAt IS NULL, 0, 1) AS IsRead
-                                FROM ChatMessage AS CM
-                                     INNER JOIN [User] AS UserFrom ON CM.UserIdFrom = UserFrom.Id
-                                     INNER JOIN [UserInformation] AS UserInformationFrom ON UserInformationFrom.Id = UserFrom.UserInformationId
-                                     INNER JOIN [User] AS UserTo ON CM.UserIdTo = UserTo.Id
-                                     INNER JOIN [UserInformation] AS UserInformationTo ON UserInformationTo.Id = UserTo.UserInformationId
-                                WHERE UserIdFrom = @userIdFrom
-                                      AND UserIdTo = @userIdTo
-                                UNION ALL
-                                SELECT CM.UserIdTo AS UserIdTo, 
-                                       concat(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS [DisplayNameTo], 
-                                       CM.MessageContent, 
-                                       SentAt, 
-                                       ReadAt, 
-                                       IIF(ReadAt IS NULL, 0, 1) AS IsRead
-                                FROM ChatMessage AS CM
-                                     INNER JOIN [User] AS UserFrom ON CM.UserIdFrom = UserFrom.Id
-                                     INNER JOIN [UserInformation] AS UserInformationFrom ON UserInformationFrom.Id = UserFrom.UserInformationId
-                                     INNER JOIN [User] AS UserTo ON CM.UserIdTo = UserTo.Id
-                                     INNER JOIN [UserInformation] AS UserInformationTo ON UserInformationTo.Id = UserTo.UserInformationId
-                                WHERE UserIdFrom = @userIdTo
-                                      AND UserIdTo = @userIdFrom
-                            ) AS CompleteHistoryChat
-                            ORDER BY CompleteHistoryChat.SentAt ASC                                     
+                           SELECT UserIdTo, 
+                                    DisplayNameTo, 
+                                    MessageContent, 
+                                    SentAt, 
+                                    ReadAt, 
+                                    CONVERT(BIT, IsRead) AS IsRead, 
+                                    CONVERT(BIT, IIF(UserIdTo = @UserIdTo, 1, 0)) AS IsSent
+                             FROM
+                             (
+                                 SELECT CM.UserIdTo AS UserIdTo, 
+                                        concat(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayNameTo, 
+                                        CM.MessageContent AS MessageContent, 
+                                        SentAt AS SentAt, 
+                                        ReadAt AS ReadAt, 
+                                        IIF(ReadAt IS NULL, 0, 1) AS IsRead
+                                 FROM ProductChatMessage AS CM
+                                      INNER JOIN [User] AS UserFrom ON CM.UserIdFrom = UserFrom.Id
+                                      INNER JOIN [UserInformation] AS UserInformationFrom ON UserInformationFrom.Id = UserFrom.UserInformationId
+                                      INNER JOIN [User] AS UserTo ON CM.UserIdTo = UserTo.Id
+                                      INNER JOIN [UserInformation] AS UserInformationTo ON UserInformationTo.Id = UserTo.UserInformationId
+                                 WHERE UserIdFrom = @userIdFrom
+                                       AND UserIdTo = @userIdTo
+                                 UNION ALL
+                                 SELECT CM.UserIdTo AS UserIdTo, 
+                                        concat(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS [DisplayNameTo], 
+                                        CM.MessageContent, 
+                                        SentAt, 
+                                        ReadAt, 
+                                        IIF(ReadAt IS NULL, 0, 1) AS IsRead
+                                 FROM ProductChatMessage AS CM
+                                      INNER JOIN [User] AS UserFrom ON CM.UserIdFrom = UserFrom.Id
+                                      INNER JOIN [UserInformation] AS UserInformationFrom ON UserInformationFrom.Id = UserFrom.UserInformationId
+                                      INNER JOIN [User] AS UserTo ON CM.UserIdTo = UserTo.Id
+                                      INNER JOIN [UserInformation] AS UserInformationTo ON UserInformationTo.Id = UserTo.UserInformationId
+                                 WHERE UserIdFrom = @userIdTo
+                                       AND UserIdTo = @userIdFrom
+                             ) AS CompleteHistoryChat
+                             ORDER BY CompleteHistoryChat.SentAt ASC                                     
 
                         ";
                 // 1.  create a command object identifying the stored procedure
