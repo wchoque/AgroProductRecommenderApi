@@ -1,4 +1,6 @@
-﻿namespace AgroProductRecommenderApi.Models
+﻿using Microsoft.AspNetCore.Http;
+
+namespace AgroProductRecommenderApi.Models
 {
     public class UserInformationModel
     {
@@ -11,6 +13,7 @@
         public string Bio { get; set; }
         public string WebpageUrl { get; set; }
         public string Dni { get; set; }
-        public string ImageUrl { get; set; }
+        public IFormFile ProfilePicture { get; set; }
+
     }
 }

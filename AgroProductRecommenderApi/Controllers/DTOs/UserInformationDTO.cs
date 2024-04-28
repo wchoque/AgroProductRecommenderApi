@@ -11,5 +11,6 @@
         public string Bio { get; set; }
         public string WebpageUrl { get; set; }
         public string Dni { get; set; }
+        public string ImageUrl { get; set; }
     }
 }

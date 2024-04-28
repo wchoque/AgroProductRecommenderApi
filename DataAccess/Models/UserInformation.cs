@@ -21,6 +21,7 @@ namespace DataAccess.Models
         public string WebpageUrl { get; set; }
         public string Dni { get; set; }
         public string ImageUrl { get; set; }
+        public byte[] AvatarData { get; set; }
 
         public virtual ICollection<User> Users { get; set; }
     }

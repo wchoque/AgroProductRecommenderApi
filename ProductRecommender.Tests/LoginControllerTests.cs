@@ -23,7 +23,6 @@ namespace ProductRecommender.Tests
             _context = new AgroProductRecommenderDBContext(options);
             _controller = new LoginController(_context);
 
-
             _context.Users.Add(new User
             {
                 Id = 1,
