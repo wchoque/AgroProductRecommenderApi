@@ -9,6 +9,7 @@ namespace DataAccess.Models
         public UserInformation()
         {
             Users = new HashSet<User>();
+            BankAccounts = new HashSet<BankAccount>();
         }
 
         public int Id { get; set; }
@@ -24,5 +25,6 @@ namespace DataAccess.Models
         public byte[] AvatarData { get; set; }
 
         public virtual ICollection<User> Users { get; set; }
+        public virtual ICollection<BankAccount> BankAccounts{ get; set; }
     }
 }

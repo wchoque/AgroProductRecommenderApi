@@ -33,6 +33,7 @@ namespace DataAccess.Models
         public virtual DbSet<FavoriteProduct> FavoriteProducts { get; set; }
         //public virtual DbSet<ChatMessage> ChatMessages { get; set; }
         public virtual DbSet<ProductChatMessage> ProductChatMessages { get; set; }
+        public virtual DbSet<BankAccount> BankAccounts { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
