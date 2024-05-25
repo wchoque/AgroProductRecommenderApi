@@ -4,6 +4,14 @@
 
 namespace DataAccess.Models
 {
+    public enum UserAccountStatus
+    {
+        Created,
+        PendingApproval,
+        Rejected,
+        Approved
+    }
+
     public partial class User
     {
         public User()
@@ -18,6 +26,7 @@ namespace DataAccess.Models
         public string Password { get; set; }
         public string AvatarUrl { get; set; }
         public bool IsActive { get; set; }
+        public UserAccountStatus AccountStatus { get; set; }
 
         public virtual UserInformation UserInformation { get; set; }
         public virtual ICollection<UserByType> UserByTypes { get; set; }

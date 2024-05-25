@@ -34,6 +34,7 @@ namespace DataAccess.Models
         //public virtual DbSet<ChatMessage> ChatMessages { get; set; }
         public virtual DbSet<ProductChatMessage> ProductChatMessages { get; set; }
         public virtual DbSet<BankAccount> BankAccounts { get; set; }
+        public virtual DbSet<UpdateRequest> UpdateRequests { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

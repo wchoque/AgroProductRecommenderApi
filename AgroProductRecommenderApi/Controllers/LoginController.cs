@@ -54,8 +54,12 @@ namespace AgroProductRecommenderApi.Controllers
                 LastName = user.UserInformation.LastName,
                 Avatar = user.AvatarUrl,
                 Email = user.UserInformation.Email,
-                DisplayName = string.Concat(user.UserInformation.FirstName, " ", user.UserInformation.LastName)
+                DisplayName = string.Concat(user.UserInformation.FirstName, " ", user.UserInformation.LastName),
+                UserAccountStatus = user.AccountStatus
             };
+
+            var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = user.Id })}";
+            userInformation.ProfileImageUrl = imageUrl;
 
             return Ok(userInformation);
         }
