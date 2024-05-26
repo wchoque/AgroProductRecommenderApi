@@ -1,4 +1,4 @@
-﻿namespace DataAccess.Models
+﻿namespace AgroProductRecommenderApi.Controllers.Admin
 {
     public class UserChangeRequest
     {

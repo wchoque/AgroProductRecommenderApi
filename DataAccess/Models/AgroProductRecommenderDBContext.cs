@@ -35,6 +35,8 @@ namespace DataAccess.Models
         public virtual DbSet<ProductChatMessage> ProductChatMessages { get; set; }
         public virtual DbSet<BankAccount> BankAccounts { get; set; }
         public virtual DbSet<UpdateRequest> UpdateRequests { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderRating> OrderRatings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -301,6 +303,31 @@ namespace DataAccess.Models
             modelBuilder.Entity<ProductChatMessage>(entity =>
             {
                 entity.ToTable("ProductChatMessage");
+            });
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Buyer)
+                    .WithMany()
+                    .HasForeignKey(e => e.BuyerId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Seller)
+                    .WithMany()
+                    .HasForeignKey(e => e.SellerId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Product)
+                    .WithMany()
+                    .HasForeignKey(e => e.ProductId)
+                    .OnDelete(DeleteBehavior.NoAction); // Prevents cascading delete
+
+                entity.HasOne(e => e.ChatMessage)
+                    .WithMany()
+                    .HasForeignKey(e => e.ChatMessageId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             OnModelCreatingPartial(modelBuilder);

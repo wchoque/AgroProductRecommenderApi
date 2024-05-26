@@ -64,6 +64,42 @@ namespace AgroProductRecommenderApi.Controllers
             return Ok(userInformation);
         }
 
+        [HttpGet("users/{userId}")]
+        public async Task<IActionResult> GetUserInfo(int userId)
+        {
+            var foundUser = await _dbContext.Users.FirstAsync(x => x.IsActive && x.Id == userId);
+
+            if (foundUser == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _dbContext.Users
+                .Include(x => x.UserInformation)
+                .Include(x => x.UserByTypes)
+                .FirstAsync(x => x.IsActive &&x.Id == userId);
+
+            var userType = user.UserByTypes.FirstOrDefault(x => x.UserId == user.Id)!.UserTypeId;
+            var userInformation = new LoggedUserInformation
+            {
+                Id = user.Id,
+                UserId = user.Id,
+                UserName = user.UserName,
+                UserType = userType,
+                FirstName = user.UserInformation.FirstName,
+                LastName = user.UserInformation.LastName,
+                Avatar = user.AvatarUrl,
+                Email = user.UserInformation.Email,
+                DisplayName = string.Concat(user.UserInformation.FirstName, " ", user.UserInformation.LastName),
+                UserAccountStatus = user.AccountStatus
+            };
+
+            var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = user.Id })}";
+            userInformation.ProfileImageUrl = imageUrl;
+
+            return Ok(userInformation);
+        }
+
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel changePasswordModel)
         {

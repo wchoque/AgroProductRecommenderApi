@@ -1,4 +1,4 @@
-﻿namespace AgroProductRecommenderApi.Models.Chat.UserChat
+﻿namespace AgroProductRecommenderApi.Models.Chat.ProductChat
 {
     public class ProductChatMessageInDto
     {

@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using DataAccess.Models;
-using Microsoft.EntityFrameworkCore;
-using AgroProductRecommenderApi.Controllers.DTOs;
-using System;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using AgroProductRecommenderApi.Controllers.DTOs;
+using DataAccess.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace WebApi.Controllers
+namespace AgroProductRecommenderApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

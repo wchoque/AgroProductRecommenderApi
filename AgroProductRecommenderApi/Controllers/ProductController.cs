@@ -73,12 +73,18 @@ namespace AgroProductRecommenderApi.Controllers
         [HttpGet("filtered-by-user")]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductsByUser(int userId, string description = "")
         {
+            if (userId == 4)//comprador
+            {
+                userId = 2;
+            }
+
             var user = await _dbContext.Users.FindAsync(userId);
             
             if (user == null)
             {
                 return NotFound("User not found");
             }
+
 
             var query = _dbContext.Products
                 .Include(x => x.Images)
@@ -136,7 +142,7 @@ namespace AgroProductRecommenderApi.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCourse(int id, ProductModel product)
+        public async Task<IActionResult> PutProduct(int id, ProductModel product)
         {
             if (id != product.Id)
             {
@@ -175,7 +181,7 @@ namespace AgroProductRecommenderApi.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Product>> PostCourse(ProductModel productModel)
+        public async Task<ActionResult<Product>> PostProduct(ProductModel productModel)
         {
             var product = new Product
             {
@@ -210,8 +216,6 @@ namespace AgroProductRecommenderApi.Controllers
 
             return product;
         }
-
-
 
         //TODO Implement handle images
 
