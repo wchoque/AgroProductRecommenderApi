@@ -38,19 +38,170 @@ namespace AgroProductRecommenderApi.Controllers.Chat
         }
 
 
-        // GET: api/ChatMessage/5
+        //// GET: api/ChatMessage/5
+        //[HttpGet("GetMessagesByUserId/{userId}")]
+        //public async Task<ActionResult<AvailableUsers>> GetMessagesByUserId(int userId)
+        //{
+        //    var result = GetAvailableUsers(userId);
+
+        //    foreach (var availableUser in result.AvailableUsersList)
+        //    {
+        //        var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = availableUser.UserIdTo })}";
+        //        availableUser.ImageUrl = imageUrl;
+        //    }
+        //    return Ok(new { availableUsers = result.AvailableUsersList });
+        //}
+
         [HttpGet("GetMessagesByUserId/{userId}")]
         public async Task<ActionResult<AvailableUsers>> GetMessagesByUserId(int userId)
         {
             var result = GetAvailableUsers(userId);
+
+            // Use a dictionary to ensure uniqueness based on UserIdTo and ProductId
+            var uniqueUsers = new Dictionary<(int UserIdTo, int ProductId), AvailableUser>();
+
+            foreach (var availableUser in result.AvailableUsersList)
+            {
+                // Skip the current user
+                if (availableUser.UserIdTo == userId)
+                {
+                    continue;
+                }
+
+                var key = (availableUser.UserIdTo, availableUser.ProductId);
+                if (!uniqueUsers.ContainsKey(key))
+                {
+                    uniqueUsers[key] = availableUser;
+                }
+            }
+
+            // Update image URLs
+            foreach (var availableUser in uniqueUsers.Values)
+            {
+                var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = availableUser.UserIdTo })}";
+                availableUser.ImageUrl = imageUrl;
+            }
+
+            return Ok(new { availableUsers = uniqueUsers.Values.ToList() });
+        }
+
+
+        [HttpGet("GetMessagesByUserId/{userId}/offers")]
+        public async Task<ActionResult<AvailableUsers>> GetOffersByUserId(int userId)
+        {
+            var result = GetAvailableUsers(userId);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            // Use a dictionary to ensure uniqueness based on UserIdTo and ProductId
+            var uniqueUsers = new Dictionary<(int UserIdTo, int ProductId), AvailableUser>();
+            var usersToRemove = new List<AvailableUser>();
+
+            foreach (var availableUser in result.AvailableUsersList)
+            {
+                // Check if there is an order for the given productId
+                var orderExists = await _context.Orders
+                    .AnyAsync(o => o.ProductId == availableUser.ProductId);
+
+                if (orderExists)
+                {
+                    // Mark the user for removal if the order exists
+                    usersToRemove.Add(availableUser);
+                }
+            }
+
+            // Remove marked users
+            foreach (var user in usersToRemove)
+            {
+                result.AvailableUsersList.Remove(user);
+            }
 
             foreach (var availableUser in result.AvailableUsersList)
             {
                 var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = availableUser.UserIdTo })}";
                 availableUser.ImageUrl = imageUrl;
             }
-            return Ok(new { availableUsers = result.AvailableUsersList });
+
+            foreach (var availableUser in result.AvailableUsersList)
+            {
+                // Skip the current user
+                if (availableUser.UserIdTo == userId)
+                {
+                    continue;
+                }
+
+                var key = (availableUser.UserIdTo, availableUser.ProductId);
+                if (!uniqueUsers.ContainsKey(key))
+                {
+                    uniqueUsers[key] = availableUser;
+                }
+            }
+
+            return Ok(new { availableUsers = uniqueUsers.Values.ToList() });
         }
+
+
+        //// GET: api/ChatMessage/5
+        //[HttpGet("GetMessagesByUserId/{userId}/offers")]
+        //public async Task<ActionResult<AvailableUsers>> GetOffersByUserId2(int userId)
+        //{
+        //    var result = GetAvailableUsers(userId);
+
+        //    if (result == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    // Use a dictionary to ensure uniqueness based on UserIdTo and ProductId
+        //    var uniqueUsers = new Dictionary<(int UserIdTo, int ProductId), AvailableUser>();
+
+        //    foreach (var availableUser in result.AvailableUsersList)
+        //    {
+        //        // Check if there is an order for the given productId and userId
+        //        var orderExists = await _context.Orders
+        //            .AnyAsync(o => o.ProductId == availableUser.ProductId);
+
+        //        if (orderExists)
+        //        {
+        //            // Remove the user from the result if the order exists
+        //            result.AvailableUsersList.Remove(availableUser);
+        //        }
+        //    }
+
+        //    foreach (var availableUser in result.AvailableUsersList)
+        //    {
+        //        var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = availableUser.UserIdTo })}";
+        //        availableUser.ImageUrl = imageUrl;
+        //    }
+
+        //    foreach (var availableUser in result.AvailableUsersList)
+        //    {
+        //        // Skip the current user
+        //        if (availableUser.UserIdTo == userId)
+        //        {
+        //            continue;
+        //        }
+
+        //        var key = (availableUser.UserIdTo, availableUser.ProductId);
+        //        if (!uniqueUsers.ContainsKey(key))
+        //        {
+        //            uniqueUsers[key] = availableUser;
+        //        }
+        //    }
+
+        //    // Update image URLs
+        //    foreach (var availableUser in uniqueUsers.Values)
+        //    {
+        //        var imageUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Action("GetProfilePicture", "User", new { id = availableUser.UserIdTo })}";
+        //        availableUser.ImageUrl = imageUrl;
+        //    }
+
+        //    return Ok(new { availableUsers = uniqueUsers.Values.ToList() });
+        //}
+
 
         public class _HistoryChat
         {
@@ -372,85 +523,90 @@ namespace AgroProductRecommenderApi.Controllers.Chat
                 conn.Open();
 
                 var query = @$"
-                                SELECT DISTINCT
-                                    COALESCE(Sent.UserIdTo, Received.UserIdFrom, SentResponded.UserIdTo, ReceivedResponded.UserIdFrom) AS UserIdTo,
-                                    COALESCE(Sent.DisplayName, Received.DisplayName, SentResponded.DisplayName, ReceivedResponded.DisplayName) AS DisplayNameTo,
-                                    COALESCE(Sent.LastMessage, Received.LastMessage, SentResponded.LastMessage, ReceivedResponded.LastMessage) AS LastMessageContent,
-                                    COALESCE(Sent.LastMessageSentAt, Received.LastMessageSentAt, SentResponded.LastMessageSentAt, ReceivedResponded.LastMessageSentAt) AS LastMessageSentAt,
-                                    COALESCE(Sent.Role, Received.Role, SentResponded.Role, ReceivedResponded.Role) AS RoleTo
-                                FROM
-                                    -- Sent, not responded
-                                    (SELECT 
-                                        UserIdTo, 
-                                        CONCAT(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayName,
-                                        UserTypeTo.Name AS Role,
-                                        MessageContent AS LastMessage, 
-                                        SentAt AS LastMessageSentAt
-                                    FROM ProductChatMessage
-                                    INNER JOIN [User] AS UserTo ON UserIdTo = UserTo.Id
-                                    INNER JOIN [UserInformation] AS UserInformationTo ON UserTo.UserInformationId = UserInformationTo.Id
-	                                INNER JOIN [UserByType] AS UseByTypeTo ON UseByTypeTo.UserId = UserTo.Id
-                                    INNER JOIN [UserType] AS UserTypeTo ON UserTypeTo.Id = UseByTypeTo.UserTypeId
-                                    WHERE UserIdFrom = @UserIdFrom
-                                    AND NOT EXISTS (
-                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = UserIdTo AND UserIdTo = @UserIdFrom
-                                    )
-                                    ) AS Sent
-                                FULL OUTER JOIN
-                                    -- Received, not responded
-                                    (SELECT 
-                                        UserIdFrom, 
-                                        CONCAT(UserInformationFrom.FirstName, ' ', UserInformationFrom.LastName) AS DisplayName,
-                                        UserTypeFrom.Name AS Role,
-                                        MessageContent AS LastMessage, 
-                                        SentAt AS LastMessageSentAt
-                                    FROM ProductChatMessage
-                                    INNER JOIN [User] AS UserFrom ON UserIdFrom = UserFrom.Id
-                                    INNER JOIN [UserInformation] AS UserInformationFrom ON UserFrom.UserInformationId = UserInformationFrom.Id
-                                    INNER JOIN [UserByType] AS UseByTypeFrom ON UseByTypeFrom.UserId = UserFrom.Id
-                                    INNER JOIN [UserType] AS UserTypeFrom ON UserTypeFrom.Id = UseByTypeFrom.UserTypeId
-                                    WHERE UserIdTo = @UserIdFrom
-                                    AND NOT EXISTS (
-                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = @UserIdFrom AND UserIdTo = UserIdFrom
-                                    )
-                                    ) AS Received ON Sent.UserIdTo = Received.UserIdFrom
-                                FULL OUTER JOIN
-                                    -- Sent, responded
-                                    (SELECT 
-                                        UserIdTo, 
-                                        CONCAT(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayName,
-                                        UserTypeTo.Name AS Role,
-                                        MessageContent AS LastMessage, 
-                                        SentAt AS LastMessageSentAt
-                                    FROM ProductChatMessage
-                                    INNER JOIN [User] AS UserTo ON UserIdTo = UserTo.Id
-                                    INNER JOIN [UserInformation] AS UserInformationTo ON UserTo.UserInformationId = UserInformationTo.Id
-	                                INNER JOIN [UserByType] AS UseByTypeTo ON UseByTypeTo.UserId = UserTo.Id
-                                    INNER JOIN [UserType] AS UserTypeTo ON UserTypeTo.Id = UseByTypeTo.UserTypeId
-                                    WHERE UserIdFrom = @UserIdFrom
-                                    AND EXISTS (
-                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = UserIdTo AND UserIdTo = @UserIdFrom
-                                    )
-                                    ) AS SentResponded ON Sent.UserIdTo = SentResponded.UserIdTo
-                                FULL OUTER JOIN
-                                    -- Received, responded
-                                    (SELECT 
-                                        UserIdFrom, 
-                                        CONCAT(UserInformationFrom.FirstName, ' ', UserInformationFrom.LastName) AS DisplayName,
-                                        UserTypeFrom.Name AS Role,
-                                        MessageContent AS LastMessage, 
-                                        SentAt AS LastMessageSentAt
-                                    FROM ProductChatMessage
-                                    INNER JOIN [User] AS UserFrom ON UserIdFrom = UserFrom.Id
-                                    INNER JOIN [UserInformation] AS UserInformationFrom ON UserFrom.UserInformationId = UserInformationFrom.Id
-                                    INNER JOIN [UserByType] AS UseByTypeFrom ON UseByTypeFrom.UserId = UserFrom.Id
-                                    INNER JOIN [UserType] AS UserTypeFrom ON UserTypeFrom.Id = UseByTypeFrom.UserTypeId
-                                    WHERE UserIdTo = @UserIdFrom
-                                    AND EXISTS (
-                                        SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = @UserIdFrom AND UserIdTo = UserIdFrom
-                                    )
-                                    ) AS ReceivedResponded ON Received.UserIdFrom = ReceivedResponded.UserIdFrom
+                               SELECT DISTINCT
+          COALESCE(Sent.UserIdTo, Received.UserIdFrom, SentResponded.UserIdTo, ReceivedResponded.UserIdFrom) AS UserIdTo,
+          COALESCE(Sent.DisplayName, Received.DisplayName, SentResponded.DisplayName, ReceivedResponded.DisplayName) AS DisplayNameTo,
+          COALESCE(Sent.LastMessage, Received.LastMessage, SentResponded.LastMessage, ReceivedResponded.LastMessage) AS LastMessageContent,
+          COALESCE(Sent.LastMessageSentAt, Received.LastMessageSentAt, SentResponded.LastMessageSentAt, ReceivedResponded.LastMessageSentAt) AS LastMessageSentAt,
+          COALESCE(Sent.Role, Received.Role, SentResponded.Role, ReceivedResponded.Role) AS RoleTo,
+          COALESCE(Sent.ProductId, Received.ProductId, SentResponded.ProductId, ReceivedResponded.ProductId) AS ProductId
+      FROM
+          -- Sent, not responded
+          (SELECT 
+              UserIdTo, 
+              CONCAT(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayName,
+              UserTypeTo.Name AS Role,
+              MessageContent AS LastMessage, 
+              SentAt AS LastMessageSentAt,
+			  ProductChatMessage.ProductId as ProductId
 
+          FROM ProductChatMessage
+          INNER JOIN [User] AS UserTo ON UserIdTo = UserTo.Id
+          INNER JOIN [UserInformation] AS UserInformationTo ON UserTo.UserInformationId = UserInformationTo.Id
+          INNER JOIN [UserByType] AS UseByTypeTo ON UseByTypeTo.UserId = UserTo.Id
+          INNER JOIN [UserType] AS UserTypeTo ON UserTypeTo.Id = UseByTypeTo.UserTypeId
+          WHERE UserIdFrom = @UserIdFrom
+          AND NOT EXISTS (
+              SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = UserIdTo AND UserIdTo = @UserIdFrom
+          )
+          ) AS Sent
+      FULL OUTER JOIN
+          -- Received, not responded
+          (SELECT 
+              UserIdFrom, 
+              CONCAT(UserInformationFrom.FirstName, ' ', UserInformationFrom.LastName) AS DisplayName,
+              UserTypeFrom.Name AS Role,
+              MessageContent AS LastMessage, 
+              SentAt AS LastMessageSentAt,
+			  ProductChatMessage.ProductId as ProductId
+          FROM ProductChatMessage
+          INNER JOIN [User] AS UserFrom ON UserIdFrom = UserFrom.Id
+          INNER JOIN [UserInformation] AS UserInformationFrom ON UserFrom.UserInformationId = UserInformationFrom.Id
+          INNER JOIN [UserByType] AS UseByTypeFrom ON UseByTypeFrom.UserId = UserFrom.Id
+          INNER JOIN [UserType] AS UserTypeFrom ON UserTypeFrom.Id = UseByTypeFrom.UserTypeId
+          WHERE UserIdTo = @UserIdFrom
+          AND NOT EXISTS (
+              SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = @UserIdFrom AND UserIdTo = UserIdFrom
+          )
+          ) AS Received ON Sent.UserIdTo = Received.UserIdFrom
+      FULL OUTER JOIN
+          -- Sent, responded
+          (SELECT 
+              UserIdTo, 
+              CONCAT(UserInformationTo.FirstName, ' ', UserInformationTo.LastName) AS DisplayName,
+              UserTypeTo.Name AS Role,
+              MessageContent AS LastMessage, 
+              SentAt AS LastMessageSentAt,
+			  ProductChatMessage.ProductId as ProductId
+          FROM ProductChatMessage
+          INNER JOIN [User] AS UserTo ON UserIdTo = UserTo.Id
+          INNER JOIN [UserInformation] AS UserInformationTo ON UserTo.UserInformationId = UserInformationTo.Id
+          INNER JOIN [UserByType] AS UseByTypeTo ON UseByTypeTo.UserId = UserTo.Id
+          INNER JOIN [UserType] AS UserTypeTo ON UserTypeTo.Id = UseByTypeTo.UserTypeId
+          WHERE UserIdFrom = @UserIdFrom
+          AND EXISTS (
+              SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = UserIdTo AND UserIdTo = @UserIdFrom
+          )
+          ) AS SentResponded ON Sent.UserIdTo = SentResponded.UserIdTo
+      FULL OUTER JOIN
+          -- Received, responded
+          (SELECT 
+              UserIdFrom, 
+              CONCAT(UserInformationFrom.FirstName, ' ', UserInformationFrom.LastName) AS DisplayName,
+              UserTypeFrom.Name AS Role,
+              MessageContent AS LastMessage, 
+              SentAt AS LastMessageSentAt,
+			  ProductChatMessage.ProductId as ProductId
+          FROM ProductChatMessage
+          INNER JOIN [User] AS UserFrom ON UserIdFrom = UserFrom.Id
+          INNER JOIN [UserInformation] AS UserInformationFrom ON UserFrom.UserInformationId = UserInformationFrom.Id
+          INNER JOIN [UserByType] AS UseByTypeFrom ON UseByTypeFrom.UserId = UserFrom.Id
+          INNER JOIN [UserType] AS UserTypeFrom ON UserTypeFrom.Id = UseByTypeFrom.UserTypeId
+          WHERE UserIdTo = @UserIdFrom
+          AND EXISTS (
+              SELECT 1 FROM ProductChatMessage WHERE UserIdFrom = @UserIdFrom AND UserIdTo = UserIdFrom
+          )
+          ) AS ReceivedResponded ON Received.UserIdFrom = ReceivedResponded.UserIdFrom
                         ";
                 // 1.  create a command object identifying the stored procedure
                 var command = new SqlCommand(query, conn);
@@ -475,6 +631,7 @@ namespace AgroProductRecommenderApi.Controllers.Chat
                                 LastMessageContent = rdr.GetString(2),
                                 LastMessageSentAt = rdr.GetDateTimeOffset(3).ToString("yyyy/MM/dd HH:mm:ss"),
                                 RoleTo = rdr.GetString(4),
+                                ProductId = rdr.GetInt32(5),
                             });
                     }
                 }

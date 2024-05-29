@@ -7,5 +7,6 @@
         public string LastMessageSentAt { get; set; }
         public string RoleTo { get; set; }
         public string ImageUrl { get; set; }
+        public int ProductId { get; set; }
     }
 }

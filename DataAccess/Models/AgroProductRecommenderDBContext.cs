@@ -330,6 +330,26 @@ namespace DataAccess.Models
                     .OnDelete(DeleteBehavior.NoAction);
             });
 
+            modelBuilder.Entity<OrderRating>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(or => or.Order)
+                    .WithMany(o => o.OrderRatings)
+                    .HasForeignKey(or => or.OrderId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(or => or.RaterUser)
+                    .WithMany()
+                    .HasForeignKey(or => or.RaterUserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(or => or.RatedUser)
+                    .WithMany()
+                    .HasForeignKey(or => or.RatedUserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
             OnModelCreatingPartial(modelBuilder);
 
             ////Seed data configuration

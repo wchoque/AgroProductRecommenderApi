@@ -1,6 +1,7 @@
 ﻿#nullable disable
 
 using System;
+using System.Collections.Generic;
 
 namespace DataAccess.Models
 {
@@ -9,7 +10,7 @@ namespace DataAccess.Models
         New,
         PaymentCompleted,
         Canceled,
-        Received
+        Completed
     }
 
     public partial class Order
@@ -29,5 +30,6 @@ namespace DataAccess.Models
         public virtual User Seller { get; set; }
         public virtual Product Product { get; set; }
         public virtual ProductChatMessage ChatMessage { get; set; }
+        public virtual ICollection<OrderRating> OrderRatings { get; set; } = new List<OrderRating>();
     }
 }

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AgroProductRecommenderApi.Controllers.Orders;
-using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using DataAccess.Models;
+using AgroProductRecommenderApi.Controllers.Orders;
 
 namespace AgroProductRecommenderApi.Controllers
 {
@@ -20,33 +20,75 @@ namespace AgroProductRecommenderApi.Controllers
             _dbContext = dbContext;
         }
 
-        // GET: api/orders
+        //// GET: api/orders/users/{userId}
+        //[HttpGet("users/{userId}")]
+        //public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders(int userId)
+        //{
+        //    var orders = await _dbContext.Orders
+        //        .Include(o => o.Buyer)
+        //        .ThenInclude(user => user.UserInformation)
+        //        .Include(o => o.Product).ThenInclude(product => product.ProductType)
+        //        .Include(order => order.OrderRatings).Include(order => order.Seller)
+        //        .Where(x => x.SellerId == userId && (x.Status == OrderStatus.New || x.Status == OrderStatus.PaymentCompleted))
+        //        .ToListAsync();
+
+        //    var ordersResult = orders.Select(o => new OrderDTO
+        //    {
+        //        OrderId = o.Id,
+        //        ProductChatMessageId = o.ChatMessageId,
+        //        OtherUserName = o.SellerId == userId ?
+        //            $"{o.Buyer.UserInformation.FirstName} {o.Buyer.UserInformation.LastName}" :
+        //            $"{o.Seller.UserInformation.FirstName} {o.Seller.UserInformation.LastName}",
+        //        OtherUserId = o.SellerId == userId ? o.Buyer.Id : o.Seller.Id,
+        //        ProductTypeName = o.Product.ProductType.Name,
+        //        ProductDescription = o.Product.Description,
+        //        Quantity = o.Quantity,
+        //        HarvestDate = o.HarvestDate.ToString("dd/MM/yyyy"),
+        //        OrderDate = o.OrderDate.ToString("dd/MM/yyyy"),
+        //        TotalAmount = o.TotalAmount,
+        //        Status = o.Status,
+        //        Rating = o.OrderRatings.FirstOrDefault(r => r.RaterUserId == userId)?.Rating ?? 0
+        //    }).ToList();
+
+        //    return Ok(ordersResult);
+        //}
+        // GET: api/orders/users/{userId}
         [HttpGet("users/{userId}")]
         public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders(int userId)
         {
             var orders = await _dbContext.Orders
                 .Include(o => o.Buyer)
                 .ThenInclude(user => user.UserInformation)
-                .Include(o => o.Product).ThenInclude(product => product.ProductType)
-                .Where(x => x.SellerId == userId && (x.Status == OrderStatus.New || x.Status == OrderStatus.PaymentCompleted))
+                .Include(o => o.Seller)
+                .ThenInclude(user => user.UserInformation)
+                .Include(o => o.Product)
+                .ThenInclude(product => product.ProductType)
+                .Include(o => o.OrderRatings)
+                .Where(o => (o.SellerId == userId || o.BuyerId == userId) &&
+                            (o.Status == OrderStatus.New || o.Status == OrderStatus.PaymentCompleted))
                 .ToListAsync();
 
             var ordersResult = orders.Select(o => new OrderDTO
             {
                 OrderId = o.Id,
                 ProductChatMessageId = o.ChatMessageId,
-                BuyerName = $"{o.Buyer.UserInformation.FirstName} {o.Buyer.UserInformation.LastName}",
+                OtherUserName = o.SellerId == userId ?
+                    $"{o.Buyer.UserInformation.FirstName} {o.Buyer.UserInformation.LastName}" :
+                    $"{o.Seller.UserInformation.FirstName} {o.Seller.UserInformation.LastName}",
+                OtherUserId = o.SellerId == userId ? o.Buyer.Id : o.Seller.Id,
                 ProductTypeName = o.Product.ProductType.Name,
                 ProductDescription = o.Product.Description,
                 Quantity = o.Quantity,
                 HarvestDate = o.HarvestDate.ToString("dd/MM/yyyy"),
                 OrderDate = o.OrderDate.ToString("dd/MM/yyyy"),
                 TotalAmount = o.TotalAmount,
-                Status = o.Status
+                Status = o.Status,
+                Rating = o.OrderRatings.FirstOrDefault(r => r.RaterUserId == userId)?.Rating ?? 0
             }).ToList();
 
             return Ok(ordersResult);
         }
+
 
         // GET: api/orders
         [HttpGet]
@@ -63,7 +105,7 @@ namespace AgroProductRecommenderApi.Controllers
             {
                 OrderId = o.Id,
                 ProductChatMessageId = o.ChatMessageId,
-                BuyerName = $"{o.Buyer.UserInformation.FirstName} {o.Buyer.UserInformation.LastName}",
+                OtherUserName = $"{o.Buyer.UserInformation.FirstName} {o.Buyer.UserInformation.LastName}",
                 ProductTypeName = o.Product.ProductType.Name,
                 ProductDescription = o.Product.Description,
                 Quantity = o.Quantity,
@@ -85,6 +127,7 @@ namespace AgroProductRecommenderApi.Controllers
                 .Include(o => o.Seller)
                 .Include(o => o.Product).ThenInclude(product => product.ProductType)
                 .Include(o => o.ChatMessage)
+                .Include(o => o.OrderRatings)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null)
@@ -97,13 +140,24 @@ namespace AgroProductRecommenderApi.Controllers
                 OrderId = order.Id,
                 ProductChatMessageId = order.ChatMessageId,
                 BuyerName = $"{order.Buyer.UserInformation.FirstName} {order.Buyer.UserInformation.LastName}",
+                BuyerUserId = order.Buyer.Id,
                 ProductTypeName = order.Product.ProductType.Name,
                 ProductDescription = order.Product.Description,
                 Quantity = order.Quantity,
                 HarvestDate = order.HarvestDate.ToString("dd/MM/yyyy"),
                 OrderDate = order.OrderDate.ToString("dd/MM/yyyy"),
                 TotalAmount = order.TotalAmount,
-                Status = order.Status
+                Status = order.Status,
+                //Rating = order.OrderRatings.FirstOrDefault(r => r.RaterUserId == userId)?.Rating ?? 0
+                //Ratings = order.OrderRatings.Select(r => new OrderRatingDTO
+                //{
+                //    RaterUserId = r.RaterUserId,
+                //    RatedUserId = r.RatedUserId,
+                //    Rating = r.Rating,
+                //    Comment = r.Comment,
+                //    RatedAt = r.RatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+                //}
+                //).ToList()
             };
 
             return ordersResult;
@@ -176,7 +230,6 @@ namespace AgroProductRecommenderApi.Controllers
                 }
             }
 
-
             return CreatedAtAction("GetOrder", new { id = order.Id }, order);
         }
 
@@ -199,6 +252,56 @@ namespace AgroProductRecommenderApi.Controllers
         private bool OrderExists(int id)
         {
             return _dbContext.Orders.Any(e => e.Id == id);
+        }
+
+        // POST: api/orders/{id}/rate
+        [HttpPost("{id}/rate")]
+        public async Task<ActionResult> RateOrder(int id, OrderRatingDTO ratingDto)
+        {
+            var order = await _dbContext.Orders
+                .Include(o => o.OrderRatings)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound("Order not found");
+            }
+
+            var existingRating = order.OrderRatings
+                .FirstOrDefault(r => r.RaterUserId == ratingDto.RaterUserId);
+
+            if (existingRating != null)
+            {
+                existingRating.Rating = ratingDto.Rating;
+                existingRating.Comment = ratingDto.Comment;
+                existingRating.RatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                //('Admin')--1
+                //('Comprador Mayorista')--2
+                //('Productor Agricola')--3
+                
+                //if (ratingDto.UserTypeId == 2)
+                //{
+                //}
+
+                var rating = new OrderRating
+                {
+                    OrderId = id,
+                    RaterUserId = ratingDto.RaterUserId,
+                    RatedUserId = ratingDto.RatedUserId,
+                    Rating = ratingDto.Rating,
+                    Comment = ratingDto.Comment,
+                    RatedAt = DateTime.UtcNow
+                };
+
+                _dbContext.OrderRatings.Add(rating);
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }
