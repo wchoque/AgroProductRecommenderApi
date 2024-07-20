@@ -5,6 +5,8 @@ using AgroProductRecommenderApi.Models;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.ML;
+using ProductRecommender;
 
 namespace AgroProductRecommenderApi.Controllers
 {
@@ -55,5 +57,35 @@ namespace AgroProductRecommenderApi.Controllers
 
             return Ok(products);
         }
+
+
+
+        //[HttpGet("GetRecommendations/{userId}")]
+        //public ActionResult<IEnumerable<ProductRecommendation>> GetRecommendations(int userId)
+        //{
+        //    var recommendations = new List<ProductRecommendation>();
+
+        //    // Supongamos que tienes una lista de productos en tu base de datos
+        //    var products = _dbContext.Products.ToList();
+
+        //    foreach (var product in products)
+        //    {
+        //        var testInput = new ProductRating { UserId = userId, ProductId = product.Id };
+        //        var productPrediction = _predictionEngine.Predict(testInput);
+        //        recommendations.Add(new ProductRecommendation
+        //        {
+        //            ProductId = product.Id,
+        //            Score = productPrediction.Score
+        //        });
+        //    }
+
+        //    return Ok(recommendations.OrderByDescending(r => r.Score).Take(10));
+        //}
+
+        //public class ProductRecommendation
+        //{
+        //    public int ProductId { get; set; }
+        //    public float Score { get; set; }
+        //}
     }
 }

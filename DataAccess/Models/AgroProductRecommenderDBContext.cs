@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductRecommender;
+
 #nullable disable
 
 namespace DataAccess.Models
@@ -37,6 +39,7 @@ namespace DataAccess.Models
         public virtual DbSet<UpdateRequest> UpdateRequests { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<OrderRating> OrderRatings { get; set; }
+        public virtual DbSet<ProductRating> ProductRatings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
